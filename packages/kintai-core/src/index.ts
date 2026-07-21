@@ -48,3 +48,17 @@ export type {
   DailyClassification,
   WeeklyOvertimeOptions,
 } from "./attendance/index.js";
+
+// 特殊な労働時間制の清算・区分判定（フレックス清算・事業場外みなし）。
+export {
+  settleFlexPeriod,
+  legalTotalFrameMinutes,
+  scheduledTotalMinutes,
+  deemedWorkMinutes,
+  FLEX_STANDARD_DAILY_MINUTES,
+} from "./worktime/index.js";
+export type {
+  FlexPeriodInput,
+  DeemedWorkOptions,
+  ClassifiedTimeContribution,
+} from "./worktime/index.js";
