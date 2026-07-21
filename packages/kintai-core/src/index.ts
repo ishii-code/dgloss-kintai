@@ -28,3 +28,23 @@ export type {
   EmployeeWageProfile,
   WagePremiumBreakdown,
 } from "./types.js";
+
+// 勤怠判定レイヤー（打刻 → 区分別労働時間）。
+export {
+  classifyDailyWork,
+  classifyDay,
+  applyWeeklyOvertime,
+  aggregateMonthly,
+  nightOverlapMinutes,
+  DAILY_STATUTORY_MINUTES,
+  WEEKLY_STATUTORY_MINUTES,
+  MINUTES_PER_DAY,
+  NIGHT_LATE_START_MINUTE,
+  NIGHT_EARLY_END_MINUTE,
+} from "./attendance/index.js";
+export type {
+  LaborInterval,
+  DailyWorkInput,
+  DailyClassification,
+  WeeklyOvertimeOptions,
+} from "./attendance/index.js";
