@@ -119,6 +119,12 @@ export class InMemoryEmployeeRepository implements EmployeeRepository {
   async findById(employeeId: EmployeeId): Promise<Employee | null> {
     return this.items.get(employeeId) ?? null;
   }
+
+  async list(): Promise<readonly Employee[]> {
+    return [...this.items.values()].sort((a, b) =>
+      a.employeeCode < b.employeeCode ? -1 : a.employeeCode > b.employeeCode ? 1 : 0,
+    );
+  }
 }
 
 /** Shadow 突合結果の in-memory リポジトリ。 */

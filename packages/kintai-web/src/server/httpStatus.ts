@@ -38,3 +38,9 @@ export function apiErrorStatus(code: ApiErrorCode): number {
 
 /** 成功応答（200）を表す定数。 */
 export const OK_STATUS = 200 as const;
+
+/**
+ * 未ログイン（セッション cookie 無し）を表す定数。
+ * `ApiErrorCode` には対応しない認可レイヤの応答のため個別に持つ。
+ */
+export const UNAUTHORIZED_STATUS = 401 as const;

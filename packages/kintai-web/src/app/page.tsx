@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import type { IsoDateTime, Stamp, StampType } from "@dgloss-kintai/contracts";
@@ -8,7 +9,7 @@ import type { IsoDateTime, Stamp, StampType } from "@dgloss-kintai/contracts";
 import { DigitalClock } from "@/components/DigitalClock";
 import { StampButton } from "@/components/StampButton";
 import type { StampButtonVariant } from "@/components/StampButton";
-import { DEMO_EMPLOYEE_ID } from "@/lib/demo";
+import type { EmployeeSummary } from "@/lib/employeeSummary";
 import {
   PRIMARY_STAMP_TYPES,
   STAMP_LABELS,
@@ -76,14 +77,20 @@ function todayRange(now: Date = new Date()): {
   };
 }
 
-/** サーバから当日の打刻を取得する。 */
+/** 現在ログイン中の従業員を取得する（未ログインは null）。 */
+async function fetchCurrentEmployee(): Promise<EmployeeSummary | null> {
+  const res = await fetch("/api/session", { cache: "no-store" });
+  if (!res.ok) {
+    throw new Error(`セッションの取得に失敗しました (HTTP ${res.status})`);
+  }
+  const json = (await res.json()) as { employee: EmployeeSummary | null };
+  return json.employee;
+}
+
+/** サーバから当日の打刻を取得する（employeeId は cookie セッションで解決）。 */
 async function fetchTodayStamps(): Promise<readonly Stamp[]> {
   const { from, to } = todayRange();
-  const params = new URLSearchParams({
-    employeeId: DEMO_EMPLOYEE_ID,
-    from,
-    to,
-  });
+  const params = new URLSearchParams({ from, to });
   const res = await fetch(`/api/stamps?${params.toString()}`, {
     cache: "no-store",
   });
@@ -94,13 +101,12 @@ async function fetchTodayStamps(): Promise<readonly Stamp[]> {
   return json.stamps;
 }
 
-/** 打刻をサーバへ登録する。 */
+/** 打刻をサーバへ登録する（employeeId は cookie セッションで解決）。 */
 async function postStamp(type: StampType, stampedAt: IsoDateTime): Promise<void> {
   const res = await fetch("/api/stamps", {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({
-      employeeId: DEMO_EMPLOYEE_ID,
       type,
       stampedAt,
       source: "manual",
@@ -112,7 +118,14 @@ async function postStamp(type: StampType, stampedAt: IsoDateTime): Promise<void>
   }
 }
 
+/** ログアウト（別の従業員に切替）する。 */
+async function logout(): Promise<void> {
+  await fetch("/api/session", { method: "DELETE" });
+}
+
 export default function StampPage(): ReactNode {
+  const router = useRouter();
+  const [employee, setEmployee] = useState<EmployeeSummary | null>(null);
   const [stamps, setStamps] = useState<readonly Stamp[]>([]);
   const [tick, setTick] = useState(0);
   const [error, setError] = useState<string | null>(null);
@@ -129,10 +142,32 @@ export default function StampPage(): ReactNode {
     }
   }, []);
 
-  // マウント後に当日打刻を初回取得する。
+  // マウント後にログイン中の従業員と当日打刻を取得する。
+  // 未ログインなら（middleware で通常は届かないが保険として）/login へ誘導する。
   useEffect(() => {
-    void reload();
-  }, [reload]);
+    void (async () => {
+      try {
+        const current = await fetchCurrentEmployee();
+        if (current === null) {
+          router.replace("/login");
+          return;
+        }
+        setEmployee(current);
+        await reload();
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "取得に失敗しました");
+      }
+    })();
+  }, [reload, router]);
+
+  // 別の従業員に切替（ログアウト→ログイン画面）。
+  const handleSwitch = useCallback((): void => {
+    void (async () => {
+      await logout();
+      router.replace("/login");
+      router.refresh();
+    })();
+  }, [router]);
 
   // 実労働時間の概算を定期的に更新する。
   useEffect(() => {
@@ -158,11 +193,14 @@ export default function StampPage(): ReactNode {
 
   const handleStamp = useCallback(
     (type: StampType): void => {
+      if (employee === null) {
+        return;
+      }
       const stampedAt = toIsoDateTime(new Date());
       // 楽観的更新: 仮の打刻を即時反映する。
       const optimistic: Stamp = {
         id: `temp_${crypto.randomUUID()}` as Stamp["id"],
-        employeeId: DEMO_EMPLOYEE_ID,
+        employeeId: employee.id,
         type,
         stampedAt,
         source: "manual",
@@ -184,19 +222,40 @@ export default function StampPage(): ReactNode {
         }
       })();
     },
-    [reload],
+    [reload, employee],
   );
 
   return (
     <main className="mx-auto flex max-w-3xl flex-col gap-6 px-5 py-8">
-      <header className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-neutral-900">ディグロス勤怠</h1>
-        <Link
-          href="/attendance"
-          className="rounded-lg px-3 py-2 text-base font-medium text-secondary underline-offset-2 hover:underline"
-        >
-          勤怠一覧
-        </Link>
+      <header className="flex items-center justify-between gap-3">
+        <div className="flex flex-col">
+          <h1 className="text-2xl font-bold text-neutral-900">ディグロス勤怠</h1>
+          {employee !== null && (
+            <p className="text-base text-neutral-600">
+              <span className="font-bold text-neutral-900">
+                {employee.name}
+              </span>
+              <span className="ml-2 font-mono text-sm tabular-nums text-neutral-400">
+                {employee.employeeCode}
+              </span>
+            </p>
+          )}
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={handleSwitch}
+            className="rounded-lg px-3 py-2 text-base font-medium text-neutral-500 underline-offset-2 hover:underline"
+          >
+            別の従業員に切替
+          </button>
+          <Link
+            href="/attendance"
+            className="rounded-lg px-3 py-2 text-base font-medium text-secondary underline-offset-2 hover:underline"
+          >
+            勤怠一覧
+          </Link>
+        </div>
       </header>
 
       <section className="rounded-3xl bg-white p-6 shadow-sm">

@@ -46,6 +46,22 @@ export class PrismaEmployeeRepository
   }
 
   /**
+   * 全従業員を社員番号昇順で返す（簡易ログインの従業員選択用）。
+   * 契約未登録の従業員は選択肢に載せない（打刻・計算対象外のため）。
+   */
+  async list(): Promise<readonly Employee[]> {
+    const rows = await this.prisma.employee.findMany({
+      include: { contract: true },
+      orderBy: { employeeCode: "asc" },
+    });
+    return rows.flatMap((row) =>
+      row.contract === null
+        ? []
+        : [employeeRowToDomain({ ...row, contract: row.contract })],
+    );
+  }
+
+  /**
    * 当該期間に在籍し締め対象となる従業員を返す。
    * 在籍判定: 入社日 <= 当月末日 かつ（退職日が null または 退職日 >= 当月1日）。
    * 契約未登録の従業員は対象外。社員番号昇順。

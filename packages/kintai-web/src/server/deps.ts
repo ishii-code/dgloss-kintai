@@ -5,8 +5,8 @@ import "server-only";
  *
  * repository 群・IdGenerator・Clock を **プロセス内シングルトン**で保持する。
  * - `DATABASE_URL` 無し（既定）: @dgloss-kintai/api の in-memory 実装を使い、
- *   デモ従業員（{@link DEMO_EMPLOYEE_ID}）を1件シードする。これにより DB が無い
- *   この環境でも打刻登録・当日照会が成立する。
+ *   デモ従業員を複数シードする（簡易ログインの選択肢が出るよう管理監督者含む数名）。
+ *   これにより DB が無いこの環境でも従業員選択→打刻登録・当日照会が成立する。
  * - `DATABASE_URL` 有り: @dgloss-kintai/db を **動的 import** して Prisma 実装へ差し替える。
  *   動的 import なので、既定パスでは Prisma を一切ロードしない（クライアントへも漏れない）。
  *
@@ -25,6 +25,7 @@ import type {
 } from "@dgloss-kintai/api";
 import type {
   Employee,
+  EmployeeId,
   IsoDateTime,
   StampId,
   Yen,
@@ -54,20 +55,29 @@ class SystemClock implements Clock {
   }
 }
 
-/** デモ用の従業員を1件生成する（in-memory シード用）。 */
-function createDemoEmployee(): Employee {
+/** デモ従業員を1名生成するヘルパー（in-memory シード用）。 */
+function makeDemoEmployee(
+  id: EmployeeId,
+  employeeCode: string,
+  name: string,
+  overrides: {
+    readonly workSystem?: Employee["contract"]["workSystem"];
+    readonly office?: Employee["contract"]["office"];
+    readonly isManagerialEmployee?: boolean;
+  } = {},
+): Employee {
   return {
-    id: DEMO_EMPLOYEE_ID,
-    employeeCode: "0001",
-    name: "デモ 太郎",
+    id,
+    employeeCode,
+    name,
     email: null,
     hiredOn: "2024-04-01",
     retiredOn: null,
     contract: {
       employmentType: "regular",
-      workSystem: "fixed",
-      office: "headquarters",
-      isManagerialEmployee: false,
+      workSystem: overrides.workSystem ?? "fixed",
+      office: overrides.office ?? "headquarters",
+      isManagerialEmployee: overrides.isManagerialEmployee ?? false,
       basicSalary: 300_000 as Yen,
       annualScheduledWorkingHours: 1920,
       fixedOvertimeAllowance: 0 as Yen,
@@ -81,11 +91,31 @@ function createDemoEmployee(): Employee {
   };
 }
 
+/**
+ * デモ用の従業員一式（in-memory シード用）。
+ * ログイン画面に複数の選択肢が並ぶよう数名用意し、管理監督者も1名含める。
+ * `emp_demo`（{@link DEMO_EMPLOYEE_ID}）は開発フォールバック・テストの既定ログイン先。
+ */
+function createDemoEmployees(): readonly Employee[] {
+  return [
+    makeDemoEmployee(DEMO_EMPLOYEE_ID, "0001", "デモ 太郎"),
+    makeDemoEmployee("emp_hanako" as EmployeeId, "0002", "デモ 花子", {
+      office: "corporate_sales",
+    }),
+    makeDemoEmployee("emp_manager" as EmployeeId, "0003", "デモ 部長", {
+      isManagerialEmployee: true,
+    }),
+    makeDemoEmployee("emp_flex" as EmployeeId, "0004", "デモ 次郎", {
+      workSystem: "flex",
+    }),
+  ];
+}
+
 /** in-memory 実装（既定・デモ従業員シード済み）を組み立てる。 */
 function buildInMemoryDeps(): ServerDeps {
   return {
     stamps: new InMemoryStampRepository(),
-    employees: new InMemoryEmployeeRepository([createDemoEmployee()]),
+    employees: new InMemoryEmployeeRepository(createDemoEmployees()),
     ids: new RandomUuidIdGenerator(),
     clock: new SystemClock(),
   };

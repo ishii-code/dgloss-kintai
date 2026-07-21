@@ -54,6 +54,11 @@ export interface MonthlyClosingRepository {
 export interface EmployeeRepository {
   /** ID で従業員を取得する。存在しなければ null。 */
   findById(employeeId: EmployeeId): Promise<Employee | null>;
+  /**
+   * 全従業員を取得する。ログイン画面（従業員選択）の選択肢に用いる。
+   * 表示順を安定させるため社員番号昇順などの安定ソートを期待する。
+   */
+  list(): Promise<readonly Employee[]>;
 }
 
 /** Shadow Mode 突合結果の照会（Ph2）。 */
