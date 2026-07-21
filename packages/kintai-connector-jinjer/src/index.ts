@@ -72,3 +72,22 @@ export type {
   ShadowVerificationResult,
   ShadowMissingEntry,
 } from "./verify.js";
+
+// Shadow 検証を実際に走らせるデモランナー（フィクスチャ＋スタブ transport・ネットワーク非依存）。
+// 実 jinjer 仕様が判明したら transport を FetchJinjerTransport に、勤怠ソースを実 DB 実装に
+// 差し替えるだけで本番の Shadow 検証へ転用できる「型付きの座（seam）」。
+export {
+  runShadowDemo,
+  formatShadowReport,
+  demoEmployeeNames,
+  DEMO_CLOSED_AT,
+  DEMO_OCCURRED_AT,
+} from "./runner/demo.js";
+export type { ShadowDemoOptions, ShadowReportOptions } from "./runner/demo.js";
+export { buildDemoScenarios, DEMO_PERIOD } from "./runner/fixtures.js";
+export type { DemoScenario } from "./runner/fixtures.js";
+export { InMemoryAttendanceSource } from "./runner/attendanceSource.js";
+export {
+  StubJinjerTransport,
+  buildJinjerClosingDto,
+} from "./runner/stubTransport.js";
