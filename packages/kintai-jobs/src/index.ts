@@ -34,3 +34,16 @@ export {
   type WorkDaySourcePort,
   type MonthlyClosingSinkPort,
 } from "./ports.js";
+
+export {
+  toPayrollCsvRow,
+  serializePayrollCsv,
+  buildPayrollCsv,
+  PAYROLL_CSV_COLUMNS,
+  type PayrollCsvRow,
+  type PayrollCsvColumn,
+  type PayrollColumnKind,
+  type PayrollCsvOptions,
+  type CsvNewline,
+  type TimeFormat,
+} from "./payrollCsv.js";
