@@ -11,7 +11,14 @@
  */
 
 export type { JinjerConfig } from "./config.js";
-export { resolveApiVersion, resolveTimeoutMs } from "./config.js";
+export {
+  resolveApiVersion,
+  resolveTokenPath,
+  resolveAccessTokenTtlMs,
+  resolveTimeoutMs,
+  DEFAULT_ACCESS_TOKEN_TTL_MS,
+  DEFAULT_TOKEN_PATH,
+} from "./config.js";
 
 export type {
   JinjerTransport,
@@ -19,8 +26,13 @@ export type {
   JinjerHttpMethod,
   MinimalFetch,
   MinimalFetchResponse,
+  Clock,
 } from "./transport.js";
-export { FetchJinjerTransport, JinjerTransportError } from "./transport.js";
+export {
+  FetchJinjerTransport,
+  JinjerTransportError,
+  JinjerAuthError,
+} from "./transport.js";
 
 export {
   jinjerEnvelopeSchema,
