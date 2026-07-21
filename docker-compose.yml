@@ -1,0 +1,33 @@
+# 勤怠システム一式（web + Postgres）。`docker compose up --build` で起動。
+services:
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: kintai
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-kintai}
+      POSTGRES_DB: kintai
+    volumes:
+      - kintai-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kintai -d kintai"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://kintai:${POSTGRES_PASSWORD:-kintai}@db:5432/kintai?schema=public
+      NODE_ENV: production
+    ports:
+      - "3000:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  kintai-pgdata:
