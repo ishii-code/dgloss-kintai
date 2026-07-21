@@ -1,19 +1,20 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
-import type { Stamp, StampType } from "@dgloss-kintai/contracts";
+import type { IsoDateTime, Stamp, StampType } from "@dgloss-kintai/contracts";
 
 import { DigitalClock } from "@/components/DigitalClock";
 import { StampButton } from "@/components/StampButton";
 import type { StampButtonVariant } from "@/components/StampButton";
+import { DEMO_EMPLOYEE_ID } from "@/lib/demo";
 import {
   PRIMARY_STAMP_TYPES,
   STAMP_LABELS,
-  createStamp,
   formatClockTime,
-  seedTodayStamps,
+  toIsoDate,
+  toIsoDateTime,
 } from "@/lib/mockData";
 import {
   deriveStatus,
@@ -63,14 +64,75 @@ function isEnabled(status: WorkStatus, type: StampType): boolean {
   }
 }
 
+/** 当日（JST）の照会範囲 [from, to] を作る。 */
+function todayRange(now: Date = new Date()): {
+  from: IsoDateTime;
+  to: IsoDateTime;
+} {
+  const date = toIsoDate(now);
+  return {
+    from: `${date}T00:00:00+09:00` as IsoDateTime,
+    to: `${date}T23:59:59+09:00` as IsoDateTime,
+  };
+}
+
+/** サーバから当日の打刻を取得する。 */
+async function fetchTodayStamps(): Promise<readonly Stamp[]> {
+  const { from, to } = todayRange();
+  const params = new URLSearchParams({
+    employeeId: DEMO_EMPLOYEE_ID,
+    from,
+    to,
+  });
+  const res = await fetch(`/api/stamps?${params.toString()}`, {
+    cache: "no-store",
+  });
+  if (!res.ok) {
+    throw new Error(`当日打刻の取得に失敗しました (HTTP ${res.status})`);
+  }
+  const json = (await res.json()) as { stamps: readonly Stamp[] };
+  return json.stamps;
+}
+
+/** 打刻をサーバへ登録する。 */
+async function postStamp(type: StampType, stampedAt: IsoDateTime): Promise<void> {
+  const res = await fetch("/api/stamps", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      employeeId: DEMO_EMPLOYEE_ID,
+      type,
+      stampedAt,
+      source: "manual",
+      note: null,
+    }),
+  });
+  if (!res.ok) {
+    throw new Error(`打刻の登録に失敗しました (HTTP ${res.status})`);
+  }
+}
+
 export default function StampPage(): ReactNode {
   const [stamps, setStamps] = useState<readonly Stamp[]>([]);
   const [tick, setTick] = useState(0);
+  const [error, setError] = useState<string | null>(null);
+  const [pending, setPending] = useState(false);
 
-  // クライアントマウント後にデモ用の当日打刻を投入（ハイドレーション不一致回避）。
-  useEffect(() => {
-    setStamps(seedTodayStamps());
+  // 当日打刻をサーバから取得して state を同期する。
+  const reload = useCallback(async (): Promise<void> => {
+    try {
+      const next = await fetchTodayStamps();
+      setStamps(next);
+      setError(null);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "取得に失敗しました");
+    }
   }, []);
+
+  // マウント後に当日打刻を初回取得する。
+  useEffect(() => {
+    void reload();
+  }, [reload]);
 
   // 実労働時間の概算を定期的に更新する。
   useEffect(() => {
@@ -94,9 +156,36 @@ export default function StampPage(): ReactNode {
     [stamps],
   );
 
-  const handleStamp = (type: StampType): void => {
-    setStamps((prev) => [...prev, createStamp(type)]);
-  };
+  const handleStamp = useCallback(
+    (type: StampType): void => {
+      const stampedAt = toIsoDateTime(new Date());
+      // 楽観的更新: 仮の打刻を即時反映する。
+      const optimistic: Stamp = {
+        id: `temp_${crypto.randomUUID()}` as Stamp["id"],
+        employeeId: DEMO_EMPLOYEE_ID,
+        type,
+        stampedAt,
+        source: "manual",
+        note: null,
+      };
+      setStamps((prev) => [...prev, optimistic]);
+      setPending(true);
+      void (async () => {
+        try {
+          await postStamp(type, stampedAt);
+          // 登録後はサーバの当日打刻で整合させる。
+          await reload();
+        } catch (e) {
+          setError(e instanceof Error ? e.message : "打刻に失敗しました");
+          // 失敗時は楽観的分を捨て、サーバ状態へ戻す。
+          await reload();
+        } finally {
+          setPending(false);
+        }
+      })();
+    },
+    [reload],
+  );
 
   return (
     <main className="mx-auto flex max-w-3xl flex-col gap-6 px-5 py-8">
@@ -121,6 +210,15 @@ export default function StampPage(): ReactNode {
         </div>
       </section>
 
+      {error !== null && (
+        <div
+          role="alert"
+          className="rounded-2xl bg-red-50 px-4 py-3 text-center text-base font-medium text-red-700"
+        >
+          {error}
+        </div>
+      )}
+
       <section className="grid grid-cols-2 gap-4">
         {PRIMARY_STAMP_TYPES.map((type) => (
           <StampButton
@@ -128,7 +226,7 @@ export default function StampPage(): ReactNode {
             type={type}
             label={STAMP_LABELS[type]}
             variant={VARIANT_BY_TYPE[type]}
-            disabled={!isEnabled(status, type)}
+            disabled={pending || !isEnabled(status, type)}
             onStamp={handleStamp}
           />
         ))}
@@ -168,10 +266,10 @@ export default function StampPage(): ReactNode {
       <div className="text-center">
         <button
           type="button"
-          onClick={() => setStamps([])}
+          onClick={() => void reload()}
           className="text-sm text-neutral-400 underline-offset-2 hover:underline"
         >
-          本日の打刻をクリア
+          再読み込み
         </button>
       </div>
     </main>
