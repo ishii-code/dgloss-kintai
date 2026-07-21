@@ -15,6 +15,8 @@
   "dependencies": {
     "@dgloss-kintai/contracts": "workspace:*",
     "@dgloss-kintai/core": "workspace:*",
+    "@dgloss-kintai/api": "workspace:*",
+    "@dgloss-kintai/db": "workspace:*",
     "next": "^15.1.6",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"

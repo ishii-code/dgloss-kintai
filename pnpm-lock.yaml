@@ -156,12 +156,18 @@ importers:
 
   packages/kintai-web:
     dependencies:
+      '@dgloss-kintai/api':
+        specifier: workspace:*
+        version: link:../kintai-api
       '@dgloss-kintai/contracts':
         specifier: workspace:*
         version: link:../kintai-contracts
       '@dgloss-kintai/core':
         specifier: workspace:*
         version: link:../kintai-core
+      '@dgloss-kintai/db':
+        specifier: workspace:*
+        version: link:../kintai-db
       next:
         specifier: ^15.1.6
         version: 15.5.20(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
