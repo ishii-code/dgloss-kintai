@@ -16,6 +16,10 @@ export type {
   SettledWagePremium,
 } from "./fixedOvertime.js";
 export {
+  fixedOvertimeAllowanceFromHours,
+  NON_REGULAR_FIXED_OVERTIME_HOURS,
+} from "./fixedOvertimeHours.js";
+export {
   resolveWagePremiumConfig,
   annualScheduledMinutesOf,
   DEFAULT_OVERTIME_INCREASED_RATE_THRESHOLD_HOURS,
