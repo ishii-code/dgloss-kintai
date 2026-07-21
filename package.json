@@ -1,0 +1,16 @@
+{
+  "name": "dgloss-kintai",
+  "private": true,
+  "version": "0.0.0",
+  "description": "株式会社ディグロス 自作勤怠システム（jinjer置き換え）",
+  "packageManager": "pnpm@10.33.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "pnpm -r run build",
+    "test": "pnpm -r run test",
+    "typecheck": "pnpm -r run typecheck",
+    "lint": "pnpm -r run lint"
+  }
+}
