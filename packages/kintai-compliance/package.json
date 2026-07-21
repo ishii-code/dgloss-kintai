@@ -1,0 +1,30 @@
+{
+  "name": "@dgloss-kintai/compliance",
+  "version": "0.0.0",
+  "description": "36協定・労働時間上限の監視とアラート。設定値（上限時間等）は config 外出し。",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": ["dist", "src"],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@dgloss-kintai/contracts": "workspace:*",
+    "@dgloss-kintai/core": "workspace:*",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.3",
+    "vitest": "^3.0.5"
+  }
+}
