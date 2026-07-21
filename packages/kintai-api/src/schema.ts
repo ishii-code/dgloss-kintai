@@ -6,7 +6,26 @@
  */
 
 import { z } from "zod";
-import { isoDateSchema, yearMonthSchema } from "@dgloss-kintai/contracts";
+import {
+  isoDateSchema,
+  isoDateTimeSchema,
+  yearMonthSchema,
+} from "@dgloss-kintai/contracts";
+
+/**
+ * 打刻照会のクエリ。
+ * from・to は RFC3339、from <= to を必須とする。
+ */
+export const stampQuerySchema = z
+  .object({
+    employeeId: z.string().min(1),
+    from: isoDateTimeSchema,
+    to: isoDateTimeSchema,
+  })
+  .refine((q) => q.from <= q.to, {
+    message: "from は to 以前の時刻である必要があります",
+    path: ["from"],
+  });
 
 /**
  * 日次勤怠照会のクエリ。
@@ -35,6 +54,7 @@ export const shadowComparisonQuerySchema = z.object({
   period: yearMonthSchema,
 });
 
+export type StampQueryParsed = z.infer<typeof stampQuerySchema>;
 export type WorkDayQueryParsed = z.infer<typeof workDayQuerySchema>;
 export type MonthlyClosingQueryParsed = z.infer<
   typeof monthlyClosingQuerySchema

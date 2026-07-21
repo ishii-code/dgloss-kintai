@@ -30,11 +30,13 @@ export type {
 
 // 照会クエリスキーマ
 export {
+  stampQuerySchema,
   workDayQuerySchema,
   monthlyClosingQuerySchema,
   shadowComparisonQuerySchema,
 } from "./schema.js";
 export type {
+  StampQueryParsed,
   WorkDayQueryParsed,
   MonthlyClosingQueryParsed,
   ShadowComparisonQueryParsed,
@@ -43,6 +45,8 @@ export type {
 // ユースケース
 export { registerStamp } from "./registerStamp.js";
 export type { RegisterStampDeps } from "./registerStamp.js";
+export { listStamps } from "./listStamps.js";
+export type { ListStampsDeps } from "./listStamps.js";
 export { listWorkDays } from "./listWorkDays.js";
 export type { ListWorkDaysDeps } from "./listWorkDays.js";
 export { getMonthlyClosing } from "./getMonthlyClosing.js";
