@@ -21,6 +21,7 @@
   "dependencies": {
     "@dgloss-kintai/contracts": "workspace:*",
     "@dgloss-kintai/core": "workspace:*",
+    "@dgloss-kintai/jobs": "workspace:*",
     "zod": "^3.24.1"
   },
   "devDependencies": {
