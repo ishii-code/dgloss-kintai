@@ -64,3 +64,11 @@ export {
   describeShadowRisk,
   ShadowComparisonMismatchError,
 } from "./shadow.js";
+
+export { runShadowVerification } from "./verify.js";
+export type {
+  ShadowAttendanceSource,
+  ShadowVerificationDeps,
+  ShadowVerificationResult,
+  ShadowMissingEntry,
+} from "./verify.js";
