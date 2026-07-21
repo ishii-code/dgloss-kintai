@@ -19,6 +19,25 @@ export { addYears, compareIso, isoDateSchema, toIsoDate } from "./dates.js";
 export { grantDaysFor } from "./grant.js";
 
 export type {
+  ProportionalGrantTableRow,
+  ProportionalLeaveConfig,
+  ScheduleGrantConfig,
+  WorkSchedule,
+} from "./proportional.js";
+export {
+  DEFAULT_PROPORTIONAL_LEAVE_CONFIG,
+  LEGAL_PROPORTIONAL_GRANT_TABLE,
+  PROPORTIONAL_ELIGIBILITY,
+  grantDaysForSchedule,
+  proportionalGrantDaysFor,
+  proportionalGrantTableRowSchema,
+  proportionalLeaveConfigSchema,
+  resolveProportionalLeaveConfig,
+  scheduleSchema,
+  weeklyEquivalentFromAnnualDays,
+} from "./proportional.js";
+
+export type {
   CurrentYearSummary,
   FiveDayObligationStatus,
   LeaveBalance,
