@@ -1,0 +1,220 @@
+// dgloss-kintai 永続化層の Prisma スキーマ。
+// @dgloss-kintai/contracts のドメイン型に 1:1 対応する。
+// - 金額は Int（円・整数）。時間は Int（分・整数）。
+// - 区分はすべて enum。値は contracts の文字列リテラルと完全一致させる
+//   （マッパーで恒等的に相互変換できるようにするため）。
+// - generate は DB 接続不要。datasource url は実行時に解決する。
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---- 区分（enum） ---------------------------------------------------------
+
+/// 勤務体系（就業規則第48条）。
+enum WorkSystem {
+  fixed
+  flex
+  shift
+  discretionary
+}
+
+/// 所属区分（就業規則第48条・第51条）。
+enum OfficeDivision {
+  headquarters
+  corporate_sales
+  personal_sales
+}
+
+/// 雇用区分。
+enum EmploymentType {
+  regular
+  non_regular
+}
+
+/// 打刻種別。
+enum StampType {
+  clock_in
+  clock_out
+  break_start
+  break_end
+  entry
+  exit
+  pc_login
+  pc_logout
+}
+
+/// 打刻の入力元。
+enum StampSource {
+  manual
+  ic_card
+  pc_log
+  jinjer_api
+}
+
+/// 日区分（就業規則第51条）。
+enum DayType {
+  workday
+  legal_holiday
+  scheduled_holiday
+}
+
+/// 休暇種別（就業規則第61条ほか）。
+enum LeaveType {
+  paid_full
+  paid_half
+  special
+  compensatory
+  absence
+}
+
+/// 締めステータス。
+enum ClosingStatus {
+  open
+  closed
+}
+
+// ---- モデル ---------------------------------------------------------------
+
+/// 従業員マスタ（contracts.Employee）。
+model Employee {
+  /// 従業員 ID（EmployeeId）。
+  id           String    @id
+  /// 社員番号（jinjer 連携キー）。
+  employeeCode String    @unique
+  name         String
+  email        String?
+  /// 入社日（暦日）。
+  hiredOn      DateTime  @db.Date
+  /// 退職日（在籍中は null）。
+  retiredOn    DateTime? @db.Date
+
+  /// 雇用契約（1-1）。
+  contract EmploymentContract?
+
+  stamps         Stamp[]
+  workDays       WorkDay[]
+  monthlyClosings MonthlyClosing[]
+
+  @@index([employeeCode])
+}
+
+/// 雇用契約（contracts.EmploymentContract）。従業員と 1-1。
+model EmploymentContract {
+  /// 契約 ID（内部採番。ドメイン型には現れない）。
+  id                          String         @id @default(cuid())
+  /// 従業員への外部キー（1-1）。
+  employeeId                  String         @unique
+  employee                    Employee       @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  employmentType              EmploymentType
+  workSystem                  WorkSystem
+  office                      OfficeDivision
+  /// 労働基準法第41条2号該当（管理監督者）。
+  isManagerialEmployee        Boolean
+  /// 基本給（月額・円）。
+  basicSalary                 Int
+  /// 当該年度の年間所定労働時間（時間）。
+  annualScheduledWorkingHours Float
+  /// 固定時間外勤務手当の月額（円）。
+  fixedOvertimeAllowance      Int
+
+  // 固定残業の充当区分（FixedOvertimeCoverage を埋め込み）。
+  coverageOvertime            Boolean
+  coverageOvertimeOver60      Boolean
+  coverageHoliday             Boolean
+  coverageNight               Boolean
+}
+
+/// 打刻（contracts.Stamp）。
+model Stamp {
+  /// 打刻 ID（StampId）。
+  id         String      @id
+  employeeId String
+  employee   Employee    @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  type       StampType
+  /// 打刻時刻（JST の瞬間として保存）。
+  stampedAt  DateTime
+  source     StampSource
+  note       String?
+
+  @@index([employeeId, stampedAt])
+}
+
+/// 日次勤怠（contracts.WorkDay）。
+model WorkDay {
+  /// 日次勤怠 ID（WorkDayId）。
+  id         String     @id
+  employeeId String
+  employee   Employee   @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  /// 暦日（JST）。
+  date       DateTime   @db.Date
+  dayType    DayType
+  /// 所定始業・終業（`HH:mm`）。休日は null。
+  scheduledStart String?
+  scheduledEnd   String?
+  /// 実労働時間（休憩控除後・分）。
+  actualWorkedMinutes Int
+  /// 休憩時間（分）。
+  breakMinutes        Int
+  /// 遅刻・早退・私用外出等の不就労時間（分）。
+  absenceMinutes      Int
+  /// 取得した休暇（なければ null）。
+  leave      LeaveType?
+
+  // 区分別労働時間（ClassifiedWorkMinutes を埋め込み・分）。
+  nonStatutoryOvertimeMinutes Int
+  statutoryOvertimeMinutes    Int
+  legalHolidayMinutes         Int
+  scheduledHolidayMinutes     Int
+  nightMinutes                Int
+
+  /// 従業員×暦日で一意。
+  @@unique([employeeId, date])
+  @@index([employeeId, date])
+}
+
+/// 月次締め（contracts.MonthlyClosing）。
+model MonthlyClosing {
+  /// 月次締め ID（MonthlyClosingId）。
+  id         String        @id
+  employeeId String
+  employee   Employee      @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  /// 締め対象年。
+  year       Int
+  /// 締め対象月（1-12）。
+  month      Int
+  status     ClosingStatus
+  /// 月内の総労働時間（分）。
+  totalWorkedMinutes Int
+
+  // 区分別労働時間（ClassifiedWorkMinutes を埋め込み・分）。
+  nonStatutoryOvertimeMinutes Int
+  statutoryOvertimeMinutes    Int
+  legalHolidayMinutes         Int
+  scheduledHolidayMinutes     Int
+  nightMinutes                Int
+
+  // 割増賃金（WagePremiumBreakdown を埋め込み・円）。
+  overtimeAllowance       Int
+  overtimeOver60Allowance Int
+  holidayAllowance        Int
+  nightAllowance          Int
+  premiumTotal            Int
+
+  /// 固定時間外勤務手当との差額支給（円）。
+  fixedOvertimeAdditionalPayment Int
+  /// 遅刻早退等の控除額（円）。
+  latenessDeduction              Int
+  /// 締め確定時刻（open のとき null）。
+  closedAt   DateTime?
+
+  /// 従業員×年月で一意。
+  @@unique([employeeId, year, month])
+  @@index([employeeId, year, month])
+}
