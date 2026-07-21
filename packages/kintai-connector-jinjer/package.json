@@ -1,7 +1,7 @@
 {
-  "name": "@dgloss-kintai/core",
+  "name": "@dgloss-kintai/connector-jinjer",
   "version": "0.0.0",
-  "description": "勤怠計算エンジン（割増賃金・遅刻早退控除・労働時間集計）。就業規則・賃金規程を仕様とする。",
+  "description": "jinjer 連携。従業員マスタ・過去勤怠の移行 pull と Shadow Mode 突合専用。",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -19,7 +19,9 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@dgloss-kintai/contracts": "workspace:*"
+    "@dgloss-kintai/contracts": "workspace:*",
+    "@dgloss-kintai/core": "workspace:*",
+    "zod": "^3.24.1"
   },
   "devDependencies": {
     "typescript": "^5.7.3",

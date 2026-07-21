@@ -1,7 +1,7 @@
 {
-  "name": "@dgloss-kintai/core",
+  "name": "@dgloss-kintai/api",
   "version": "0.0.0",
-  "description": "勤怠計算エンジン（割増賃金・遅刻早退控除・労働時間集計）。就業規則・賃金規程を仕様とする。",
+  "description": "勤怠 API のサービス層。打刻登録・勤怠照会・締めのユースケースを型安全に提供する。",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -19,7 +19,9 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@dgloss-kintai/contracts": "workspace:*"
+    "@dgloss-kintai/contracts": "workspace:*",
+    "@dgloss-kintai/core": "workspace:*",
+    "zod": "^3.24.1"
   },
   "devDependencies": {
     "typescript": "^5.7.3",
