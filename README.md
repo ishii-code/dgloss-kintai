@@ -9,12 +9,17 @@
 
 | パッケージ | 役割 | 状態 |
 | --- | --- | --- |
-| `packages/kintai-core` | 割増計算エンジン＋テスト（賃金規程第20条ほか） | ✅ 着手（本コミット） |
-| `kintai-contracts` | 打刻/勤怠/締めの型・APIスキーマ・イベント | 予定 |
-| `kintai-api` | API サーバ | 予定 |
-| `kintai-web` | UI（peco-ui 準拠） | 予定 |
-| `kintai-jobs` | 締めバッチ | 予定 |
-| `kintai-connector-jinjer` | jinjer 移行＆Shadow 突合 | 予定 |
+| `kintai-contracts` | 打刻/勤怠/締めの型・zodスキーマ・ドメインイベント | ✅ |
+| `kintai-core` | 割増計算（第20条）・遅刻早退控除（第21条）・区分判定（深夜/休日/8h/40h）・フレックス清算・事業場外みなし | ✅ |
+| `kintai-leave` | 年次有給休暇の付与・消化・繰越（第61条） | ✅ |
+| `kintai-compliance` | 36協定・労働時間上限アラート | ✅ |
+| `kintai-jobs` | 締めバッチ（月次締め・給与連携CSV） | ✅ |
+| `kintai-api` | API サービス層（型安全ユースケース・zod検証） | ✅ |
+| `kintai-db` | Prisma 永続化層（api/jobs の port 実装） | ✅ |
+| `kintai-connector-jinjer` | jinjer 移行 pull ＆ Shadow Mode 突合・検証実行 | ✅ |
+| `kintai-web` | UI（Next.js・peco-ui 準拠・iPad優先） | ✅ 打刻画面 |
+
+全パッケージ TypeScript strict / `any` 禁止。テスト計 305 件（`pnpm -r test`）。
 
 > リポ構成メモ: 引き継ぎ計画では polyrepo（`dgloss-kintai-*` 別リポ）だが、
 > 現状は単一リポ `dgloss-kintai` に monorepo として構築している。各パッケージは
