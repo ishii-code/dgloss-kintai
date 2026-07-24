@@ -31,5 +31,6 @@ ENV NODE_ENV=production
 WORKDIR /app
 COPY --from=build /app ./
 EXPOSE 3000
-# 起動時に未適用マイグレーションを反映してから web を起動する。
-CMD ["sh", "-c", "pnpm --filter @dgloss-kintai/db exec prisma migrate deploy && exec pnpm --filter @dgloss-kintai/web start -- --hostname 0.0.0.0 --port 3000"]
+# 起動時: マイグレーション適用 →（任意）デモ従業員シード → web 起動。
+# KINTAI_SEED_DEMO=true のときだけデモ従業員を投入する（本番の実データは jinjer 移行で用意）。
+CMD ["sh", "-c", "pnpm --filter @dgloss-kintai/db exec prisma migrate deploy && { [ \"$KINTAI_SEED_DEMO\" = true ] && pnpm --filter @dgloss-kintai/db run seed || true; } && exec pnpm --filter @dgloss-kintai/web start -- --hostname 0.0.0.0 --port 3000"]

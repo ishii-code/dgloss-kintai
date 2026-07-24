@@ -23,6 +23,9 @@ services:
     environment:
       DATABASE_URL: postgresql://kintai:${POSTGRES_PASSWORD:-kintai}@db:5432/kintai?schema=public
       NODE_ENV: production
+      # 初回デプロイでログインできるようデモ従業員を投入する。
+      # 本番の実データ（jinjer 移行等）を入れたら "false" にする。
+      KINTAI_SEED_DEMO: "${KINTAI_SEED_DEMO:-true}"
     ports:
       - "3000:3000"
     depends_on:

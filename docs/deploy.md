@@ -32,15 +32,20 @@ docker compose up --build -d  # db 起動 → web ビルド → マイグレー�
 
 ## 従業員データの投入（重要）
 
-`DATABASE_URL` あり（本番）モードでは、打刻の登録・照会に**従業員マスタが必要**（打刻APIが従業員存在を確認する）。
-本番では次のいずれかで従業員を投入する:
+`DATABASE_URL` あり（本番）モードでは、ログイン一覧・打刻に**従業員マスタが必要**。
+新規 DB は従業員ゼロのため、そのままではログインできない。投入方法は次のいずれか:
 
-1. **jinjer 移行**（推奨・Ph0）: `@dgloss-kintai/connector-jinjer` の `pullEmployees()` で従業員を取得し DB へ投入。
-   （実 jinjer 接続情報が確定してから。`packages/kintai-connector-jinjer/docs/JINJER_API.md` 参照）
-2. **シード**: 運用開始時に従業員行を投入するスクリプト。
+1. **デモ従業員シード（初回デプロイ用）**: `KINTAI_SEED_DEMO=true`（compose の既定）だと、
+   web コンテナ起動時に `@dgloss-kintai/db` の `seed`（`packages/kintai-db/src/seed.ts`）が
+   デモ従業員4名を冪等に投入する。すぐにログイン→打刻を試せる。
+   手動実行は `DATABASE_URL=... pnpm --filter @dgloss-kintai/db run seed`。
+2. **jinjer 移行**（本番の実データ・Ph0）: `@dgloss-kintai/connector-jinjer` の `pullEmployees()` で
+   従業員を取得し DB へ投入。実 jinjer 接続情報が確定してから
+   （`packages/kintai-connector-jinjer/docs/JINJER_API.md` 参照）。
 
-現状の UI はデモ従業員 `emp_demo` を前提にしている（`packages/kintai-web/src/lib/demo.ts`）。
-本番では実際の従業員 ID に接続する認証・従業員選択を追加する（未実装・次フェーズ）。
+実データを入れたら `KINTAI_SEED_DEMO=false` にする。
+
+ログインはキオスク型（従業員選択＝ログイン・httpOnly cookie）。パスワード/SSO は次フェーズ。
 
 ## 環境変数
 
