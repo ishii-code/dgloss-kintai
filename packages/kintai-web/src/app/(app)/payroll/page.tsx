@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { ReactNode } from "react";
 
+import { AdminGuard } from "@/components/AdminGuard";
 import {
   currentYearMonth,
   formatYearMonth,
@@ -64,8 +65,9 @@ export default function PayrollPage(): ReactNode {
   };
 
   return (
-    <div className="flex flex-col gap-5">
-      <h1 className="text-2xl font-bold text-neutral-900">給与 CSV</h1>
+    <AdminGuard>
+      <div className="flex flex-col gap-5">
+        <h1 className="text-2xl font-bold text-neutral-900">給与 CSV</h1>
 
       <section className="flex flex-col gap-5 rounded-2xl bg-white p-6 shadow-sm">
         <p className="text-base text-neutral-600">
@@ -131,6 +133,7 @@ export default function PayrollPage(): ReactNode {
           </p>
         )}
       </section>
-    </div>
+      </div>
+    </AdminGuard>
   );
 }

@@ -14,29 +14,17 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 
 import type { EmployeeSummary } from "@/lib/employeeSummary";
+import { MODULES, navLinksForRole } from "@/lib/modules";
+import type { Role } from "@/lib/modules";
+import { fetchSession } from "@/lib/session";
 import { APP_VERSION, isNewerBuild } from "@/lib/version";
 
 /** ポーリング間隔（ミリ秒）。 */
 const VERSION_POLL_INTERVAL_MS = 60_000;
-
-/** ナビゲーションのタブ定義。 */
-interface NavItem {
-  readonly href: string;
-  readonly label: string;
-}
-
-const NAV_ITEMS: readonly NavItem[] = [
-  { href: "/", label: "打刻" },
-  { href: "/attendance", label: "勤怠一覧" },
-  { href: "/closing", label: "月次締め" },
-  { href: "/payroll", label: "給与CSV" },
-  { href: "/release-notes", label: "リリースノート" },
-  { href: "/improvements", label: "改善リクエスト" },
-];
 
 /** 日時を JST の `M/D HH:mm` で表示する。 */
 const UPDATED_FMT = new Intl.DateTimeFormat("ja-JP", {
@@ -47,16 +35,6 @@ const UPDATED_FMT = new Intl.DateTimeFormat("ja-JP", {
   minute: "2-digit",
   hour12: false,
 });
-
-/** 現在ログイン中の従業員を取得する（未ログインは null）。 */
-async function fetchCurrentEmployee(): Promise<EmployeeSummary | null> {
-  const res = await fetch("/api/session", { cache: "no-store" });
-  if (!res.ok) {
-    throw new Error(`セッションの取得に失敗しました (HTTP ${res.status})`);
-  }
-  const json = (await res.json()) as { employee: EmployeeSummary | null };
-  return json.employee;
-}
 
 /** 現在のビルド識別子を取得する。 */
 async function fetchBuildId(): Promise<string> {
@@ -86,20 +64,22 @@ export function AppShell({ children }: { readonly children: ReactNode }): ReactN
   const router = useRouter();
   const pathname = usePathname();
   const [employee, setEmployee] = useState<EmployeeSummary | null>(null);
+  const [role, setRole] = useState<Role | null>(null);
   const [updatedAt, setUpdatedAt] = useState<Date | null>(null);
   const [initialBuildId, setInitialBuildId] = useState<string>("");
   const [updateAvailable, setUpdateAvailable] = useState(false);
 
-  // マウント後にログイン中の従業員を取得する。未ログインなら /login へ誘導する。
+  // マウント後にログイン中の従業員と役割を取得する。未ログインなら /login へ誘導する。
   useEffect(() => {
     void (async () => {
       try {
-        const current = await fetchCurrentEmployee();
-        if (current === null) {
+        const session = await fetchSession();
+        if (session.employee === null) {
           router.replace("/login");
           return;
         }
-        setEmployee(current);
+        setEmployee(session.employee);
+        setRole(session.role);
         setUpdatedAt(new Date());
       } catch {
         // 取得失敗時は保険としてログインへ。
@@ -151,6 +131,9 @@ export function AppShell({ children }: { readonly children: ReactNode }): ReactN
       router.refresh();
     })();
   }, [router]);
+
+  // 役割で主要タブ（ホーム＋稼働中モジュール）を組み立てる。
+  const navLinks = useMemo(() => navLinksForRole(MODULES, role), [role]);
 
   return (
     <div className="min-h-full bg-neutral-100">
@@ -209,7 +192,7 @@ export function AppShell({ children }: { readonly children: ReactNode }): ReactN
           </div>
 
           <nav className="-mb-px flex flex-wrap gap-1">
-            {NAV_ITEMS.map((item) => {
+            {navLinks.map((item) => {
               const active = isActive(item.href, pathname);
               return (
                 <Link

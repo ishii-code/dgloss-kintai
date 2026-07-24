@@ -15,6 +15,7 @@ import type { EmployeeId } from "@dgloss-kintai/contracts";
 
 import { getDeps } from "@/server/deps";
 import { OK_STATUS, apiErrorStatus } from "@/server/httpStatus";
+import { resolveRole } from "@/server/role";
 import {
   readSessionEmployeeId,
   sessionClearCookie,
@@ -37,19 +38,23 @@ function errorResponse(error: ApiError): Response {
 export async function GET(req: Request): Promise<Response> {
   const employeeId = readSessionEmployeeId(req);
   if (employeeId === null) {
-    return Response.json({ employee: null }, { status: OK_STATUS });
+    return Response.json({ employee: null, role: null }, { status: OK_STATUS });
   }
   const deps = await getDeps();
   const employee = await deps.employees.findById(employeeId);
   if (employee === null) {
     // cookie は残っているが該当従業員が居ない（退職・データ差替え等）→ 未ログイン扱い。
     return Response.json(
-      { employee: null },
+      { employee: null, role: null },
       { status: OK_STATUS, headers: { "set-cookie": sessionClearCookie() } },
     );
   }
+  // 社員番号 allowlist から役割（admin/general）を解決してクライアントへ渡す。
   return Response.json(
-    { employee: toEmployeeSummary(employee) },
+    {
+      employee: toEmployeeSummary(employee),
+      role: resolveRole(employee.employeeCode),
+    },
     { status: OK_STATUS },
   );
 }

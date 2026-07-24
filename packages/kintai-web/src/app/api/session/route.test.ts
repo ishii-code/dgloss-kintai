@@ -23,29 +23,50 @@ function postRequest(body: unknown): Request {
 }
 
 describe("GET /api/session", () => {
-  it("cookie 未設定なら 200 で employee=null", async () => {
+  it("cookie 未設定なら 200 で employee=null・role=null", async () => {
     const res = await GET(new Request(ENDPOINT));
     expect(res.status).toBe(200);
-    const json = (await res.json()) as { employee: EmployeeSummary | null };
+    const json = (await res.json()) as {
+      employee: EmployeeSummary | null;
+      role: string | null;
+    };
     expect(json.employee).toBeNull();
+    expect(json.role).toBeNull();
   });
 
-  it("cookie ありなら該当従業員の公開サマリを返す", async () => {
+  it("cookie ありなら該当従業員の公開サマリと役割を返す", async () => {
     const res = await GET(
       new Request(ENDPOINT, {
         headers: { cookie: `${SESSION_COOKIE_NAME}=${DEMO_EMPLOYEE_ID}` },
       }),
     );
     expect(res.status).toBe(200);
-    const json = (await res.json()) as { employee: EmployeeSummary | null };
+    const json = (await res.json()) as {
+      employee: EmployeeSummary | null;
+      role: string | null;
+    };
     expect(json.employee?.id).toBe(DEMO_EMPLOYEE_ID);
     expect(json.employee?.name).toBe("デモ 太郎");
+    // デモ太郎の社員番号 0001 は既定 allowlist に含まれ admin。
+    expect(json.role).toBe("admin");
     // 機密（契約など）は含まない。
     expect(Object.keys(json.employee ?? {})).toEqual([
       "id",
       "name",
       "employeeCode",
     ]);
+  });
+
+  it("allowlist 外の従業員は role=general", async () => {
+    const res = await GET(
+      new Request(ENDPOINT, {
+        // emp_hanako は社員番号 0002（既定 allowlist 外）。
+        headers: { cookie: `${SESSION_COOKIE_NAME}=emp_hanako` },
+      }),
+    );
+    expect(res.status).toBe(200);
+    const json = (await res.json()) as { role: string | null };
+    expect(json.role).toBe("general");
   });
 });
 
