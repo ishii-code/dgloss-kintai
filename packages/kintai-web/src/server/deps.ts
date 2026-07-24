@@ -67,6 +67,9 @@ class RandomUuidIdGenerator implements IdGenerator {
   improvementRequestId(): ImprovementRequestId {
     return `req_${crypto.randomUUID()}` as ImprovementRequestId;
   }
+  employeeId(): EmployeeId {
+    return `emp_${crypto.randomUUID()}` as EmployeeId;
+  }
 }
 
 /** 実時刻を RFC3339 で返す Clock。 */

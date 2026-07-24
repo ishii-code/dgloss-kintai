@@ -74,3 +74,8 @@ export function validationError(
 export function notFoundError(message: string): ApiError {
   return { code: "not_found", message };
 }
+
+/** conflict（409 相当・重複や状態不整合）の ApiError を作る。 */
+export function conflictError(message: string): ApiError {
+  return { code: "conflict", message };
+}

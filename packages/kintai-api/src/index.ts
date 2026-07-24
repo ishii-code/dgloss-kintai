@@ -15,7 +15,13 @@ export type {
   ApiErrorDetail,
   Result,
 } from "./result.js";
-export { ok, err, validationError, notFoundError } from "./result.js";
+export {
+  ok,
+  err,
+  validationError,
+  notFoundError,
+  conflictError,
+} from "./result.js";
 
 // リポジトリ / インフラ port
 export type {
@@ -62,6 +68,49 @@ export { getMonthlyClosing } from "./getMonthlyClosing.js";
 export type { GetMonthlyClosingDeps } from "./getMonthlyClosing.js";
 export { getShadowComparison } from "./getShadowComparison.js";
 export type { GetShadowComparisonDeps } from "./getShadowComparison.js";
+
+// 従業員管理ユースケース（Phase 2・管理者専用）
+export { createEmployee } from "./createEmployee.js";
+export type { CreateEmployeeDeps } from "./createEmployee.js";
+export { updateEmployee } from "./updateEmployee.js";
+export type { UpdateEmployeeDeps } from "./updateEmployee.js";
+export { getEmployeeDetail, employeeDetailQuerySchema } from "./getEmployeeDetail.js";
+export type { GetEmployeeDetailDeps } from "./getEmployeeDetail.js";
+export { listEmployeesDetailed } from "./listEmployeesDetailed.js";
+export type { ListEmployeesDetailedDeps } from "./listEmployeesDetailed.js";
+export { employeeSummary, summarizeEmployees } from "./employeeSummary.js";
+export type {
+  EmployeeSummaryDeps,
+  EmployeeDatabaseSummary,
+} from "./employeeSummary.js";
+export { importEmployeesCsv } from "./importEmployeesCsv.js";
+export type {
+  ImportEmployeesCsvDeps,
+  ImportResult,
+  ImportRowError,
+} from "./importEmployeesCsv.js";
+export { exportEmployeesCsv } from "./exportEmployeesCsv.js";
+export type { ExportEmployeesCsvDeps } from "./exportEmployeesCsv.js";
+
+// 従業員入力スキーマ・CSV 変換（列定義・区分ラベル）
+export {
+  employeeInputSchema,
+  employeeUpdateInputSchema,
+  contractFromParsed,
+} from "./employeeInput.js";
+export type {
+  EmployeeInputParsed,
+  EmployeeUpdateInputParsed,
+} from "./employeeInput.js";
+export {
+  EMPLOYEE_CSV_HEADERS,
+  EMPLOYMENT_TYPE_LABEL,
+  WORK_SYSTEM_LABEL,
+  OFFICE_LABEL,
+  BOOL_LABEL,
+  serializeEmployeesCsv,
+  parseCsv,
+} from "./employeeCsv.js";
 
 // port の in-memory 参照実装（テスト・ローカル用）
 export {

@@ -52,15 +52,20 @@ export interface MonthlyClosingRepository {
   ): Promise<MonthlyClosing | null>;
 }
 
-/** 従業員マスタの照会。 */
+/** 従業員マスタの照会・書き込み。 */
 export interface EmployeeRepository {
   /** ID で従業員を取得する。存在しなければ null。 */
   findById(employeeId: EmployeeId): Promise<Employee | null>;
   /**
-   * 全従業員を取得する。ログイン画面（従業員選択）の選択肢に用いる。
+   * 全従業員を取得する。ログイン画面（従業員選択）の選択肢・管理画面の一覧に用いる。
    * 表示順を安定させるため社員番号昇順などの安定ソートを期待する。
    */
   list(): Promise<readonly Employee[]>;
+  /**
+   * 従業員（雇用契約含む）を id で upsert する（冪等）。
+   * 既存があれば更新、無ければ作成する。管理画面の作成・更新・CSV 取込で用いる。
+   */
+  upsert(employee: Employee): Promise<void>;
 }
 
 /** Shadow Mode 突合結果の照会（Ph2）。 */
@@ -78,6 +83,8 @@ export interface IdGenerator {
   stampId(): StampId;
   /** 新しい改善リクエスト ID を採番する。 */
   improvementRequestId(): ImprovementRequestId;
+  /** 新しい従業員 ID を採番する。 */
+  employeeId(): EmployeeId;
 }
 
 /** 改善リクエストの永続化。 */

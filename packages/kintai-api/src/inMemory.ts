@@ -128,6 +128,10 @@ export class InMemoryEmployeeRepository implements EmployeeRepository {
       a.employeeCode < b.employeeCode ? -1 : a.employeeCode > b.employeeCode ? 1 : 0,
     );
   }
+
+  async upsert(employee: Employee): Promise<void> {
+    this.items.set(employee.id, employee);
+  }
 }
 
 /** Shadow 突合結果の in-memory リポジトリ。 */
@@ -164,6 +168,11 @@ export class SequentialIdGenerator implements IdGenerator {
   improvementRequestId(): ImprovementRequestId {
     this.counter += 1;
     return `${this.prefix}-req-${this.counter}` as ImprovementRequestId;
+  }
+
+  employeeId(): EmployeeId {
+    this.counter += 1;
+    return `${this.prefix}-emp-${this.counter}` as EmployeeId;
   }
 }
 

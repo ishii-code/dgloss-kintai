@@ -44,3 +44,9 @@ export const OK_STATUS = 200 as const;
  * `ApiErrorCode` には対応しない認可レイヤの応答のため個別に持つ。
  */
 export const UNAUTHORIZED_STATUS = 401 as const;
+
+/**
+ * 権限不足（ログイン済みだが管理者でない）を表す定数。
+ * `ApiErrorCode` には対応しない認可レイヤの応答のため個別に持つ。
+ */
+export const FORBIDDEN_STATUS = 403 as const;
