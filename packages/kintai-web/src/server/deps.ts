@@ -15,29 +15,46 @@ import "server-only";
 
 import {
   InMemoryEmployeeRepository,
+  InMemoryImprovementRequestRepository,
+  InMemoryMonthlyClosingRepository,
   InMemoryStampRepository,
+  InMemoryWorkDayRepository,
 } from "@dgloss-kintai/api";
 import type {
   Clock,
   EmployeeRepository,
   IdGenerator,
+  ImprovementRequestRepository,
+  MonthlyClosingRepository,
   StampRepository,
+  WorkDayRepository,
 } from "@dgloss-kintai/api";
 import type {
   Employee,
   EmployeeId,
+  ImprovementRequest,
   ImprovementRequestId,
+  IsoDate,
   IsoDateTime,
+  Minutes,
+  MonthlyClosing,
   StampId,
+  WorkDay,
   Yen,
 } from "@dgloss-kintai/contracts";
 
 import { DEMO_EMPLOYEE_ID } from "@/lib/demo";
 
-/** registerStamp / listStamps に供給する依存一式。 */
+/**
+ * サービス層ユースケースに供給する依存一式。
+ * 打刻・従業員に加え、日次勤怠・月次締め・改善リクエストのリポジトリを保持する。
+ */
 export interface ServerDeps {
   readonly stamps: StampRepository;
   readonly employees: EmployeeRepository;
+  readonly workDays: WorkDayRepository;
+  readonly closings: MonthlyClosingRepository;
+  readonly improvements: ImprovementRequestRepository;
   readonly ids: IdGenerator;
   readonly clock: Clock;
 }
@@ -115,11 +132,135 @@ function createDemoEmployees(): readonly Employee[] {
   ];
 }
 
-/** in-memory 実装（既定・デモ従業員シード済み）を組み立てる。 */
+/** 区分別労働時間ゼロ（ヘルパー・シード用）。 */
+function zeroClassified(): WorkDay["classified"] {
+  return {
+    nonStatutoryOvertimeMinutes: 0,
+    statutoryOvertimeMinutes: 0,
+    legalHolidayMinutes: 0,
+    scheduledHolidayMinutes: 0,
+    nightMinutes: 0,
+  };
+}
+
+/** デモ用の日次勤怠を1件生成するヘルパー（in-memory シード用）。 */
+function makeDemoWorkDay(
+  date: string,
+  actualWorkedMinutes: number,
+  overtimeMinutes = 0,
+): WorkDay {
+  return {
+    id: `wd_${date}` as WorkDay["id"],
+    employeeId: DEMO_EMPLOYEE_ID,
+    date: date as IsoDate,
+    dayType: "workday",
+    scheduledStart: "09:00",
+    scheduledEnd: "18:00",
+    actualWorkedMinutes: actualWorkedMinutes as Minutes,
+    breakMinutes: 60 as Minutes,
+    absenceMinutes: 0 as Minutes,
+    leave: null,
+    classified: {
+      ...zeroClassified(),
+      nonStatutoryOvertimeMinutes: overtimeMinutes,
+    },
+  };
+}
+
+/**
+ * デモ用の日次勤怠（当月＝2026-07 の一部平日）。
+ * 画面が空にならないよう数日分を用意する。
+ */
+function createDemoWorkDays(): readonly WorkDay[] {
+  return [
+    makeDemoWorkDay("2026-07-01", 495, 15),
+    makeDemoWorkDay("2026-07-02", 480, 0),
+    makeDemoWorkDay("2026-07-03", 600, 120),
+    makeDemoWorkDay("2026-07-06", 480, 0),
+    makeDemoWorkDay("2026-07-07", 540, 60),
+  ];
+}
+
+/** デモ用の月次締めを1件生成するヘルパー（in-memory シード用）。 */
+function makeDemoClosing(
+  year: number,
+  month: number,
+  status: MonthlyClosing["status"],
+): MonthlyClosing {
+  const closedAt =
+    status === "closed"
+      ? (`${year}-${String(month).padStart(2, "0")}-28T18:00:00+09:00` as IsoDateTime)
+      : null;
+  return {
+    id: `mc_${year}${String(month).padStart(2, "0")}_demo` as MonthlyClosing["id"],
+    employeeId: DEMO_EMPLOYEE_ID,
+    period: { year, month },
+    status,
+    totalWorkedMinutes: 9_600 as Minutes,
+    classified: {
+      nonStatutoryOvertimeMinutes: 1_200,
+      statutoryOvertimeMinutes: 0,
+      legalHolidayMinutes: 240,
+      scheduledHolidayMinutes: 0,
+      nightMinutes: 120,
+    },
+    premium: {
+      overtimeAllowance: 45_000 as Yen,
+      overtimeOver60Allowance: 0 as Yen,
+      holidayAllowance: 12_000 as Yen,
+      nightAllowance: 3_000 as Yen,
+      total: 60_000 as Yen,
+    },
+    fixedOvertimeAdditionalPayment: 0 as Yen,
+    latenessDeduction: 1_500 as Yen,
+    closedAt,
+  };
+}
+
+/** デモ用の月次締め（前月＝確定済み・当月＝仮締め）。 */
+function createDemoClosings(): readonly MonthlyClosing[] {
+  return [
+    makeDemoClosing(2026, 6, "closed"),
+    makeDemoClosing(2026, 7, "open"),
+  ];
+}
+
+/** デモ用の改善リクエストを少量生成する（in-memory シード用）。 */
+function createDemoImprovements(): readonly ImprovementRequest[] {
+  return [
+    {
+      id: "req_demo_1" as ImprovementRequestId,
+      createdByEmployeeId: DEMO_EMPLOYEE_ID,
+      category: "feature",
+      title: "月次締めの PDF 出力がほしい",
+      body: "給与 CSV に加えて、締め結果を PDF で保存できると勤怠管理が楽になります。",
+      status: "planned",
+      createdAt: "2026-07-10T10:00:00+09:00" as IsoDateTime,
+      updatedAt: "2026-07-12T09:00:00+09:00" as IsoDateTime,
+    },
+    {
+      id: "req_demo_2" as ImprovementRequestId,
+      createdByEmployeeId: DEMO_EMPLOYEE_ID,
+      category: "bug",
+      title: "休憩終了の打刻が反映されないことがある",
+      body: "連続してタップすると休憩終了が二重に登録されるようです。",
+      status: "in_progress",
+      createdAt: "2026-07-15T14:30:00+09:00" as IsoDateTime,
+      updatedAt: "2026-07-16T11:00:00+09:00" as IsoDateTime,
+    },
+  ];
+}
+
+/** in-memory 実装（既定・デモデータシード済み）を組み立てる。 */
 function buildInMemoryDeps(): ServerDeps {
   return {
     stamps: new InMemoryStampRepository(),
     employees: new InMemoryEmployeeRepository(createDemoEmployees()),
+    workDays: new InMemoryWorkDayRepository(createDemoWorkDays()),
+    closings: new InMemoryMonthlyClosingRepository(createDemoClosings()),
+    improvements: new InMemoryImprovementRequestRepository(
+      createDemoImprovements(),
+    ),
     ids: new RandomUuidIdGenerator(),
     clock: new SystemClock(),
   };
@@ -135,6 +276,9 @@ async function buildPrismaDeps(): Promise<ServerDeps> {
   return {
     stamps: new db.PrismaStampRepository(prisma),
     employees: new db.PrismaEmployeeRepository(prisma),
+    workDays: new db.PrismaWorkDayRepository(prisma),
+    closings: new db.PrismaMonthlyClosingRepository(prisma),
+    improvements: new db.PrismaImprovementRequestRepository(prisma),
     ids: new RandomUuidIdGenerator(),
     clock: new SystemClock(),
   };
