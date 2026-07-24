@@ -205,14 +205,14 @@ export const MODULES: readonly KintaiModule[] = [
   },
   {
     id: "payslips",
-    label: "明細管理",
-    description: "給与明細の発行・配布・履歴を管理します。",
+    label: "給与明細",
+    description: "対象月の給与明細（総支給・自社控除・差引支給）を確認します。",
     icon: "📄",
     path: "/payslips",
-    status: "soon",
+    status: "active",
     category: "payroll",
-    requiredRole: "admin",
-    phase: 4,
+    requiredRole: "general",
+    showInNav: true,
   },
   // --- 各種設定 ---------------------------------------------------------
   {
