@@ -54,6 +54,16 @@ export const shadowComparisonQuerySchema = z.object({
   period: yearMonthSchema,
 });
 
+/**
+ * 給与明細照会のクエリ。
+ * 締めと同じく従業員・年月で引く。通勤手当は任意（未設定は0）で総支給に含める。
+ */
+export const payslipQuerySchema = z.object({
+  employeeId: z.string().min(1),
+  period: yearMonthSchema,
+  commuteAllowance: z.number().int().min(0).optional(),
+});
+
 export type StampQueryParsed = z.infer<typeof stampQuerySchema>;
 export type WorkDayQueryParsed = z.infer<typeof workDayQuerySchema>;
 export type MonthlyClosingQueryParsed = z.infer<
@@ -62,3 +72,4 @@ export type MonthlyClosingQueryParsed = z.infer<
 export type ShadowComparisonQueryParsed = z.infer<
   typeof shadowComparisonQuerySchema
 >;
+export type PayslipQueryParsed = z.infer<typeof payslipQuerySchema>;

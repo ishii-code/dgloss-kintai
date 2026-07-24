@@ -16,6 +16,9 @@ importers:
       '@dgloss-kintai/core':
         specifier: workspace:*
         version: link:../kintai-core
+      '@dgloss-kintai/jobs':
+        specifier: workspace:*
+        version: link:../kintai-jobs
       zod:
         specifier: ^3.24.1
         version: 3.25.76

@@ -41,12 +41,14 @@ export {
   workDayQuerySchema,
   monthlyClosingQuerySchema,
   shadowComparisonQuerySchema,
+  payslipQuerySchema,
 } from "./schema.js";
 export type {
   StampQueryParsed,
   WorkDayQueryParsed,
   MonthlyClosingQueryParsed,
   ShadowComparisonQueryParsed,
+  PayslipQueryParsed,
 } from "./schema.js";
 
 // ユースケース
@@ -68,6 +70,8 @@ export { getMonthlyClosing } from "./getMonthlyClosing.js";
 export type { GetMonthlyClosingDeps } from "./getMonthlyClosing.js";
 export { getShadowComparison } from "./getShadowComparison.js";
 export type { GetShadowComparisonDeps } from "./getShadowComparison.js";
+export { getPayslip } from "./getPayslip.js";
+export type { GetPayslipDeps } from "./getPayslip.js";
 
 // 従業員管理ユースケース（Phase 2・管理者専用）
 export { createEmployee } from "./createEmployee.js";
