@@ -47,3 +47,22 @@ export {
   type CsvNewline,
   type TimeFormat,
 } from "./payrollCsv.js";
+
+// jinjer からの移行（Ph0）。取得元（source）・書き込み先（sink）は port 注入。
+// 実 DB 実装・実ネットワークは持たない（batch.ts と同じ方針）。
+export {
+  migrateEmployees,
+  migrateStamps,
+  migrateAttendance,
+  type EmployeeSink,
+  type StampSink,
+  type WorkDaySink,
+  type EmployeeSource,
+  type StampSource,
+  type AttendanceSource,
+  type MigrateEmployeesDeps,
+  type MigrateStampsDeps,
+  type MigrateAttendanceDeps,
+  type MigrationResult,
+  type MigrationFailure,
+} from "./migration/migrate.js";

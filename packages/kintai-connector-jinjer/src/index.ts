@@ -103,3 +103,16 @@ export {
   StubJinjerTransport,
   buildJinjerClosingDto,
 } from "./runner/stubTransport.js";
+
+// jinjer 従業員マスタ移行（Ph0）を実際に走らせるデモランナー（スタブ transport＋インメモリ sink・
+// ネットワーク非依存）。実 jinjer 仕様が判明したら transport を FetchJinjerTransport に、sink を
+// 実 DB リポジトリ（PrismaEmployeeRepository）に差し替えるだけで本番移行へ転用できる seam。
+export {
+  runMigrationDemo,
+  formatMigrationReport,
+  buildMigrationEmployeeDtos,
+  StubEmployeeTransport,
+  InMemoryEmployeeSink,
+  DEMO_FAILING_STAFF_CODES,
+} from "./runner/migrateDemo.js";
+export type { MigrationDemoResult } from "./runner/migrateDemo.js";
