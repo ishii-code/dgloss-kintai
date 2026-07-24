@@ -3,6 +3,9 @@
   "version": "0.0.0",
   "private": true,
   "description": "勤怠 UI（peco-ui 準拠 / iPad 優先）。打刻・勤怠照会・締め確認。",
+  "engines": {
+    "node": "22.x"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
