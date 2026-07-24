@@ -48,6 +48,12 @@ export {
   type TimeFormat,
 } from "./payrollCsv.js";
 
+// 給与明細（総支給まで・第20/21条）。所得税・社保は外部連携（未計上）。
+export {
+  buildPayslip,
+  type BuildPayslipOptions,
+} from "./payslip.js";
+
 // jinjer からの移行（Ph0）。取得元（source）・書き込み先（sink）は port 注入。
 // 実 DB 実装・実ネットワークは持たない（batch.ts と同じ方針）。
 export {

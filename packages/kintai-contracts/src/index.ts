@@ -49,6 +49,8 @@ export type {
   ShadowComparison,
 } from "./closing.js";
 
+export type { Payslip, PayslipLine } from "./payslip.js";
+
 export type {
   DomainEvent,
   StampRegistered,
