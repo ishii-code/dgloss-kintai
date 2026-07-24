@@ -13,8 +13,6 @@ const nextConfig = {
     "@dgloss-kintai/core",
     "@dgloss-kintai/api",
   ],
-  // Prisma 系はバンドルせず外部モジュールとして扱う（動的 import 時のみ実ロード）。
-  serverExternalPackages: ["@prisma/client", "@dgloss-kintai/db"],
   // monorepo 全体をトレース基点にする（依存が repo ルート node_modules にあるため）。
   outputFileTracingRoot: path.join(dirname, "..", ".."),
   // Prisma のクエリエンジン(.so.node)は動的ロードされ静的トレースから漏れるため、
