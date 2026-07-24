@@ -149,12 +149,28 @@ const depsGlobal = globalThis as unknown as DepsGlobal;
  * サーバ依存を取得する（プロセス内シングルトン・遅延初期化）。
  * `DATABASE_URL` の有無で in-memory / Prisma を切り替える。
  */
+/**
+ * 接続文字列が環境変数に設定されているか（＝DB モードか）を判定する。
+ * ホスティング先で変数名が異なる（Vercel の Neon 連携は `POSTGRES_PRISMA_URL`/
+ * `POSTGRES_URL` 等）ため、複数の名前を受ける。@dgloss-kintai/db の解決順と一致させる。
+ * ここで db を import しない（in-memory パスに Prisma を持ち込まないため）。
+ */
+function hasDatabaseUrl(): boolean {
+  const env = process.env;
+  const url =
+    env.DATABASE_URL ??
+    env.POSTGRES_PRISMA_URL ??
+    env.POSTGRES_URL_NON_POOLING ??
+    env.DATABASE_URL_UNPOOLED ??
+    env.POSTGRES_URL;
+  return url !== undefined && url !== "";
+}
+
 export function getDeps(): Promise<ServerDeps> {
   if (depsGlobal.__dglossKintaiDeps === undefined) {
-    depsGlobal.__dglossKintaiDeps =
-      process.env.DATABASE_URL !== undefined && process.env.DATABASE_URL !== ""
-        ? buildPrismaDeps()
-        : Promise.resolve(buildInMemoryDeps());
+    depsGlobal.__dglossKintaiDeps = hasDatabaseUrl()
+      ? buildPrismaDeps()
+      : Promise.resolve(buildInMemoryDeps());
   }
   return depsGlobal.__dglossKintaiDeps;
 }

@@ -8,7 +8,7 @@
  */
 
 // PrismaClient 生成ヘルパー
-export { createPrismaClient } from "./client.js";
+export { createPrismaClient, resolveDatabaseUrl } from "./client.js";
 export type { CreatePrismaClientOptions } from "./client.js";
 
 // リポジトリ実装（port 実装）
