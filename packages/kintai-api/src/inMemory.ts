@@ -8,6 +8,8 @@
 import type {
   Employee,
   EmployeeId,
+  ImprovementRequest,
+  ImprovementRequestId,
   IsoDate,
   IsoDateTime,
   MonthlyClosing,
@@ -21,6 +23,7 @@ import type {
   Clock,
   EmployeeRepository,
   IdGenerator,
+  ImprovementRequestRepository,
   MonthlyClosingRepository,
   ShadowComparisonRepository,
   StampRepository,
@@ -156,6 +159,37 @@ export class SequentialIdGenerator implements IdGenerator {
   stampId(): StampId {
     this.counter += 1;
     return `${this.prefix}-${this.counter}` as StampId;
+  }
+
+  improvementRequestId(): ImprovementRequestId {
+    this.counter += 1;
+    return `${this.prefix}-req-${this.counter}` as ImprovementRequestId;
+  }
+}
+
+/** 改善リクエストの in-memory リポジトリ。 */
+export class InMemoryImprovementRequestRepository
+  implements ImprovementRequestRepository
+{
+  private readonly items: ImprovementRequest[] = [];
+
+  constructor(seed: readonly ImprovementRequest[] = []) {
+    this.items.push(...seed);
+  }
+
+  async save(request: ImprovementRequest): Promise<void> {
+    const idx = this.items.findIndex((r) => r.id === request.id);
+    if (idx >= 0) {
+      this.items[idx] = request;
+    } else {
+      this.items.push(request);
+    }
+  }
+
+  async list(): Promise<readonly ImprovementRequest[]> {
+    return [...this.items].sort((a, b) =>
+      a.createdAt < b.createdAt ? 1 : a.createdAt > b.createdAt ? -1 : 0,
+    );
   }
 }
 

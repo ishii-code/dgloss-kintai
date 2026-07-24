@@ -19,6 +19,8 @@ export type StampId = Brand<string, "StampId">;
 export type WorkDayId = Brand<string, "WorkDayId">;
 /** 月次締め ID。 */
 export type MonthlyClosingId = Brand<string, "MonthlyClosingId">;
+/** 改善リクエスト ID。 */
+export type ImprovementRequestId = Brand<string, "ImprovementRequestId">;
 
 /** `YYYY-MM-DD`（JST の暦日）。 */
 export type IsoDate = Brand<string, "IsoDate">;

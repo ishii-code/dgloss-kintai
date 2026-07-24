@@ -24,6 +24,7 @@ export type {
   MonthlyClosingRepository,
   EmployeeRepository,
   ShadowComparisonRepository,
+  ImprovementRequestRepository,
   IdGenerator,
   Clock,
 } from "./ports.js";
@@ -47,6 +48,10 @@ export { registerStamp } from "./registerStamp.js";
 export type { RegisterStampDeps } from "./registerStamp.js";
 export { listStamps } from "./listStamps.js";
 export type { ListStampsDeps } from "./listStamps.js";
+export { createImprovementRequest } from "./createImprovementRequest.js";
+export type { CreateImprovementRequestDeps } from "./createImprovementRequest.js";
+export { listImprovementRequests } from "./listImprovementRequests.js";
+export type { ListImprovementRequestsDeps } from "./listImprovementRequests.js";
 export { listEmployees } from "./listEmployees.js";
 export type { ListEmployeesDeps } from "./listEmployees.js";
 export { getEmployee, employeeQuerySchema } from "./getEmployee.js";
@@ -65,6 +70,7 @@ export {
   InMemoryMonthlyClosingRepository,
   InMemoryEmployeeRepository,
   InMemoryShadowComparisonRepository,
+  InMemoryImprovementRequestRepository,
   SequentialIdGenerator,
   FixedClock,
 } from "./inMemory.js";

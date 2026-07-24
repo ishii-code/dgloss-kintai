@@ -11,6 +11,7 @@ export type {
   StampId,
   WorkDayId,
   MonthlyClosingId,
+  ImprovementRequestId,
   IsoDate,
   IsoDateTime,
   YearMonth,
@@ -55,6 +56,19 @@ export type {
   MonthlyClosingCompleted,
   ShadowComparisonMismatch,
 } from "./events.js";
+
+export type {
+  ImprovementRequest,
+  ImprovementRequestInput,
+  ImprovementRequestStatus,
+  ImprovementRequestCategory,
+  ImprovementRequestInputParsed,
+} from "./improvement.js";
+export {
+  improvementRequestInputSchema,
+  IMPROVEMENT_REQUEST_STATUSES,
+  IMPROVEMENT_REQUEST_CATEGORIES,
+} from "./improvement.js";
 
 export {
   isoDateSchema,

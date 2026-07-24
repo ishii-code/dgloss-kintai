@@ -26,6 +26,7 @@ import type {
 import type {
   Employee,
   EmployeeId,
+  ImprovementRequestId,
   IsoDateTime,
   StampId,
   Yen,
@@ -45,6 +46,9 @@ export interface ServerDeps {
 class RandomUuidIdGenerator implements IdGenerator {
   stampId(): StampId {
     return `stamp_${crypto.randomUUID()}` as StampId;
+  }
+  improvementRequestId(): ImprovementRequestId {
+    return `req_${crypto.randomUUID()}` as ImprovementRequestId;
   }
 }
 

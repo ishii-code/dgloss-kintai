@@ -220,3 +220,34 @@ model MonthlyClosing {
   @@unique([employeeId, year, month])
   @@index([employeeId, year, month])
 }
+
+/// 改善リクエストの対応ステータス。
+enum ImprovementRequestStatus {
+  open
+  planned
+  in_progress
+  done
+  rejected
+}
+
+/// 改善リクエストの種別。
+enum ImprovementRequestCategory {
+  feature
+  bug
+  other
+}
+
+/// 改善リクエスト（利用者からの機能要望・不具合報告）。
+model ImprovementRequest {
+  id                  String                     @id
+  createdByEmployeeId String
+  category            ImprovementRequestCategory
+  title               String
+  body                String
+  status              ImprovementRequestStatus
+  createdAt           DateTime
+  updatedAt           DateTime
+
+  @@index([status])
+  @@index([createdAt])
+}

@@ -3,8 +3,8 @@
 -- 何度実行してもよい（初期セットアップのため既存を掃除して作り直す）。
 DO $$
 BEGIN
-  DROP TABLE IF EXISTS "MonthlyClosing","WorkDay","Stamp","EmploymentContract","Employee" CASCADE;
-  DROP TYPE IF EXISTS "WorkSystem","OfficeDivision","EmploymentType","StampType","StampSource","DayType","LeaveType","ClosingStatus";
+  DROP TABLE IF EXISTS "ImprovementRequest","MonthlyClosing","WorkDay","Stamp","EmploymentContract","Employee" CASCADE;
+  DROP TYPE IF EXISTS "WorkSystem","OfficeDivision","EmploymentType","StampType","StampSource","DayType","LeaveType","ClosingStatus","ImprovementRequestStatus","ImprovementRequestCategory";
 
   CREATE TYPE "WorkSystem" AS ENUM ('fixed','flex','shift','discretionary');
   CREATE TYPE "OfficeDivision" AS ENUM ('headquarters','corporate_sales','personal_sales');
@@ -14,6 +14,8 @@ BEGIN
   CREATE TYPE "DayType" AS ENUM ('workday','legal_holiday','scheduled_holiday');
   CREATE TYPE "LeaveType" AS ENUM ('paid_full','paid_half','special','compensatory','absence');
   CREATE TYPE "ClosingStatus" AS ENUM ('open','closed');
+  CREATE TYPE "ImprovementRequestStatus" AS ENUM ('open','planned','in_progress','done','rejected');
+  CREATE TYPE "ImprovementRequestCategory" AS ENUM ('feature','bug','other');
 
   CREATE TABLE "Employee" (
     "id" TEXT NOT NULL, "employeeCode" TEXT NOT NULL, "name" TEXT NOT NULL,
@@ -65,6 +67,15 @@ BEGIN
   CREATE UNIQUE INDEX "WorkDay_employeeId_date_key" ON "WorkDay"("employeeId","date");
   CREATE INDEX "MonthlyClosing_employeeId_year_month_idx" ON "MonthlyClosing"("employeeId","year","month");
   CREATE UNIQUE INDEX "MonthlyClosing_employeeId_year_month_key" ON "MonthlyClosing"("employeeId","year","month");
+
+  CREATE TABLE "ImprovementRequest" (
+    "id" TEXT NOT NULL, "createdByEmployeeId" TEXT NOT NULL,
+    "category" "ImprovementRequestCategory" NOT NULL, "title" TEXT NOT NULL,
+    "body" TEXT NOT NULL, "status" "ImprovementRequestStatus" NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL, "updatedAt" TIMESTAMP(3) NOT NULL,
+    CONSTRAINT "ImprovementRequest_pkey" PRIMARY KEY ("id"));
+  CREATE INDEX "ImprovementRequest_status_idx" ON "ImprovementRequest"("status");
+  CREATE INDEX "ImprovementRequest_createdAt_idx" ON "ImprovementRequest"("createdAt");
 
   ALTER TABLE "EmploymentContract" ADD CONSTRAINT "EmploymentContract_employeeId_fkey" FOREIGN KEY ("employeeId") REFERENCES "Employee"("id") ON DELETE CASCADE ON UPDATE CASCADE;
   ALTER TABLE "Stamp" ADD CONSTRAINT "Stamp_employeeId_fkey" FOREIGN KEY ("employeeId") REFERENCES "Employee"("id") ON DELETE CASCADE ON UPDATE CASCADE;

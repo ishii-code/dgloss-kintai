@@ -9,6 +9,8 @@
 import type {
   Employee,
   EmployeeId,
+  ImprovementRequest,
+  ImprovementRequestId,
   IsoDate,
   IsoDateTime,
   MonthlyClosing,
@@ -74,6 +76,16 @@ export interface ShadowComparisonRepository {
 export interface IdGenerator {
   /** 新しい打刻 ID を採番する。 */
   stampId(): StampId;
+  /** 新しい改善リクエスト ID を採番する。 */
+  improvementRequestId(): ImprovementRequestId;
+}
+
+/** 改善リクエストの永続化。 */
+export interface ImprovementRequestRepository {
+  /** 改善リクエストを保存する。 */
+  save(request: ImprovementRequest): Promise<void>;
+  /** 全改善リクエストを新しい順で返す。 */
+  list(): Promise<readonly ImprovementRequest[]>;
 }
 
 /** 時刻 port。テストでは固定時刻を注入できる。 */

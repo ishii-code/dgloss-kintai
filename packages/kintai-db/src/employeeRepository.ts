@@ -7,7 +7,11 @@ import type { Employee, EmployeeId, YearMonth } from "@dgloss-kintai/contracts";
 import type { EmployeeRepository } from "@dgloss-kintai/api";
 import type { EmployeeDirectoryPort } from "@dgloss-kintai/jobs";
 import type { PrismaClient } from "@prisma/client";
-import { employeeRowToDomain, isoDateToDate } from "./mappers.js";
+import {
+  employeeRowToDomain,
+  employeeToRow,
+  isoDateToDate,
+} from "./mappers.js";
 
 /** 年月の当月1日と末日の Date を得る。 */
 function monthEdges(period: YearMonth): { first: Date; last: Date } {
@@ -84,5 +88,40 @@ export class PrismaEmployeeRepository
         ? []
         : [employeeRowToDomain({ ...row, contract: row.contract })],
     );
+  }
+
+  /**
+   * 従業員（契約含む）を id で upsert する（jinjer 移行の投入用・冪等）。
+   * 既存があれば更新、無ければ作成する。
+   */
+  async upsert(employee: Employee): Promise<void> {
+    const row = employeeToRow(employee);
+    const { contract, ...employeeFields } = row;
+    const contractData = {
+      employmentType: contract.employmentType,
+      workSystem: contract.workSystem,
+      office: contract.office,
+      isManagerialEmployee: contract.isManagerialEmployee,
+      basicSalary: contract.basicSalary,
+      annualScheduledWorkingHours: contract.annualScheduledWorkingHours,
+      fixedOvertimeAllowance: contract.fixedOvertimeAllowance,
+      coverageOvertime: contract.coverageOvertime,
+      coverageOvertimeOver60: contract.coverageOvertimeOver60,
+      coverageHoliday: contract.coverageHoliday,
+      coverageNight: contract.coverageNight,
+    };
+    await this.prisma.employee.upsert({
+      where: { id: employeeFields.id },
+      create: {
+        ...employeeFields,
+        contract: { create: contractData },
+      },
+      update: {
+        ...employeeFields,
+        contract: {
+          upsert: { create: contractData, update: contractData },
+        },
+      },
+    });
   }
 }

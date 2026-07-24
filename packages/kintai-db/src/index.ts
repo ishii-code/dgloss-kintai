@@ -16,6 +16,10 @@ export { PrismaStampRepository } from "./stampRepository.js";
 export { PrismaWorkDayRepository } from "./workDayRepository.js";
 export { PrismaMonthlyClosingRepository } from "./monthlyClosingRepository.js";
 export { PrismaEmployeeRepository } from "./employeeRepository.js";
+export {
+  PrismaImprovementRequestRepository,
+  improvementRequestRowToDomain,
+} from "./improvementRequestRepository.js";
 
 // マッパー（純粋関数）
 export {
