@@ -63,6 +63,13 @@ export {
 } from "./companySettings.js";
 
 export type {
+  RoleSettings,
+  RoleSettingsInput,
+  RoleSettingsInputParsed,
+} from "./roleSettings.js";
+export { roleSettingsInputSchema } from "./roleSettings.js";
+
+export type {
   ApprovalRequest,
   ApprovalRequestInput,
   ApprovalRequestType,

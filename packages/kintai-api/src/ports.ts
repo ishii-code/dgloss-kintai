@@ -17,6 +17,7 @@ import type {
   IsoDate,
   IsoDateTime,
   MonthlyClosing,
+  RoleSettings,
   ShadowComparison,
   Stamp,
   StampId,
@@ -116,6 +117,14 @@ export interface CompanySettingsRepository {
   get(): Promise<CompanySettings | null>;
   /** 企業設定を保存する（シングルトンの upsert）。 */
   save(settings: CompanySettings): Promise<void>;
+}
+
+/** ロール設定（シングルトン）の永続化。 */
+export interface RoleSettingsRepository {
+  /** 保存済みのロール設定を返す。未保存なら null（呼び出し側が env/既定へフォールバック）。 */
+  get(): Promise<RoleSettings | null>;
+  /** ロール設定を保存する（シングルトンの upsert）。 */
+  save(settings: RoleSettings): Promise<void>;
 }
 
 /** 時刻 port。テストでは固定時刻を注入できる。 */

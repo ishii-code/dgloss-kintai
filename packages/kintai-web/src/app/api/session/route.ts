@@ -15,7 +15,7 @@ import type { EmployeeId } from "@dgloss-kintai/contracts";
 
 import { getDeps } from "@/server/deps";
 import { OK_STATUS, apiErrorStatus } from "@/server/httpStatus";
-import { resolveRole } from "@/server/role";
+import { resolveRoleWithSettings } from "@/server/role";
 import {
   readSessionEmployeeId,
   sessionClearCookie,
@@ -49,11 +49,12 @@ export async function GET(req: Request): Promise<Response> {
       { status: OK_STATUS, headers: { "set-cookie": sessionClearCookie() } },
     );
   }
-  // 社員番号 allowlist から役割（admin/general）を解決してクライアントへ渡す。
+  // ロール設定（DB）を優先し、役割（admin/general）を解決してクライアントへ渡す。
+  const roleSettings = await deps.roleSettings.get();
   return Response.json(
     {
       employee: toEmployeeSummary(employee),
-      role: resolveRole(employee.employeeCode),
+      role: resolveRoleWithSettings(employee.employeeCode, roleSettings),
     },
     { status: OK_STATUS },
   );

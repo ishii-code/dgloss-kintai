@@ -271,13 +271,12 @@ export const MODULES: readonly KintaiModule[] = [
   {
     id: "settings-roles",
     label: "ロール設定",
-    description: "管理者・一般などの権限ロールと割り当てを管理します。",
+    description: "管理者権限を持つ従業員を指定します（環境変数に依存せず画面から管理）。",
     icon: "🔑",
     path: "/settings/roles",
-    status: "soon",
+    status: "active",
     category: "settings",
     requiredRole: "admin",
-    phase: 4,
   },
   {
     id: "settings-custom-fields",

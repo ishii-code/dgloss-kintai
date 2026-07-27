@@ -12,6 +12,8 @@ import "server-only";
  * ここは土台として、社員番号 → 役割 の解決だけを担う。
  */
 
+import type { RoleSettings } from "@dgloss-kintai/contracts";
+
 import type { Role } from "@/lib/modules";
 
 /** allowlist が未設定・空のときに管理者とみなす既定の社員番号。 */
@@ -65,4 +67,36 @@ export function resolveRoleWith(
 export function resolveRole(employeeCode: string): Role {
   const adminCodes = parseAdminCodes(process.env[ADMIN_CODES_ENV]);
   return resolveRoleWith(employeeCode, adminCodes);
+}
+
+/**
+ * 有効な管理者社員番号を決める（純粋関数）。
+ *
+ * ロール設定（DB）が保存済みで 1 件以上あればそれを採用し、無ければ
+ * 環境変数・既定（{@link parseAdminCodes}）へフォールバックする。
+ * これにより DB 未設定でも従来どおり env/既定で管理者を判定できる。
+ *
+ * @param settings 保存済みロール設定（未保存は null）
+ */
+export function effectiveAdminCodes(
+  settings: RoleSettings | null,
+): readonly string[] {
+  if (settings !== null && settings.adminEmployeeCodes.length > 0) {
+    return settings.adminEmployeeCodes;
+  }
+  return parseAdminCodes(process.env[ADMIN_CODES_ENV]);
+}
+
+/**
+ * ロール設定（DB）を優先しつつ社員番号の役割を解決する（純粋関数）。
+ * 設定が無ければ env/既定へフォールバックする。
+ *
+ * @param employeeCode 判定対象の社員番号
+ * @param settings 保存済みロール設定（未保存は null）
+ */
+export function resolveRoleWithSettings(
+  employeeCode: string,
+  settings: RoleSettings | null,
+): Role {
+  return resolveRoleWith(employeeCode, effectiveAdminCodes(settings));
 }

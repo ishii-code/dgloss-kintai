@@ -279,6 +279,15 @@ model CompanySettings {
   updatedAt            DateTime
 }
 
+/// ロール設定（管理者社員番号の一覧・シングルトン）。
+model RoleSettings {
+  /// 固定 ID（シングルトン。常に "default"）。
+  id                 String   @id @default("default")
+  /// 管理者とみなす社員番号の一覧（最低1名）。
+  adminEmployeeCodes String[]
+  updatedAt          DateTime
+}
+
 /// 承認申請（ワークフロー・申請/承認）。
 model ApprovalRequest {
   id                  String                @id

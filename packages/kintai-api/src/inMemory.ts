@@ -16,6 +16,7 @@ import type {
   IsoDate,
   IsoDateTime,
   MonthlyClosing,
+  RoleSettings,
   ShadowComparison,
   Stamp,
   StampId,
@@ -30,6 +31,7 @@ import type {
   IdGenerator,
   ImprovementRequestRepository,
   MonthlyClosingRepository,
+  RoleSettingsRepository,
   ShadowComparisonRepository,
   StampRepository,
   WorkDayRepository,
@@ -257,6 +259,25 @@ export class InMemoryCompanySettingsRepository
   }
 
   async save(settings: CompanySettings): Promise<void> {
+    this.current = settings;
+  }
+}
+
+/** ロール設定（シングルトン）の in-memory リポジトリ。 */
+export class InMemoryRoleSettingsRepository
+  implements RoleSettingsRepository
+{
+  private current: RoleSettings | null;
+
+  constructor(seed: RoleSettings | null = null) {
+    this.current = seed;
+  }
+
+  async get(): Promise<RoleSettings | null> {
+    return this.current;
+  }
+
+  async save(settings: RoleSettings): Promise<void> {
     this.current = settings;
   }
 }

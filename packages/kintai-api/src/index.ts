@@ -33,6 +33,7 @@ export type {
   ImprovementRequestRepository,
   ApprovalRequestRepository,
   CompanySettingsRepository,
+  RoleSettingsRepository,
   IdGenerator,
   Clock,
 } from "./ports.js";
@@ -124,6 +125,12 @@ export type { GetCompanySettingsDeps } from "./getCompanySettings.js";
 export { updateCompanySettings } from "./updateCompanySettings.js";
 export type { UpdateCompanySettingsDeps } from "./updateCompanySettings.js";
 
+// ロール設定（Phase 4・管理者専用）
+export { getRoleSettings } from "./getRoleSettings.js";
+export type { GetRoleSettingsDeps } from "./getRoleSettings.js";
+export { updateRoleSettings } from "./updateRoleSettings.js";
+export type { UpdateRoleSettingsDeps } from "./updateRoleSettings.js";
+
 // 従業員管理ユースケース（Phase 2・管理者専用）
 export { createEmployee } from "./createEmployee.js";
 export type { CreateEmployeeDeps } from "./createEmployee.js";
@@ -177,6 +184,7 @@ export {
   InMemoryImprovementRequestRepository,
   InMemoryApprovalRequestRepository,
   InMemoryCompanySettingsRepository,
+  InMemoryRoleSettingsRepository,
   SequentialIdGenerator,
   FixedClock,
 } from "./inMemory.js";

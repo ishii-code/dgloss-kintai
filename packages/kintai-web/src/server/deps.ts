@@ -19,6 +19,7 @@ import {
   InMemoryEmployeeRepository,
   InMemoryImprovementRequestRepository,
   InMemoryMonthlyClosingRepository,
+  InMemoryRoleSettingsRepository,
   InMemoryStampRepository,
   InMemoryWorkDayRepository,
 } from "@dgloss-kintai/api";
@@ -30,6 +31,7 @@ import type {
   IdGenerator,
   ImprovementRequestRepository,
   MonthlyClosingRepository,
+  RoleSettingsRepository,
   StampRepository,
   WorkDayRepository,
 } from "@dgloss-kintai/api";
@@ -63,6 +65,7 @@ export interface ServerDeps {
   readonly improvements: ImprovementRequestRepository;
   readonly approvals: ApprovalRequestRepository;
   readonly companySettings: CompanySettingsRepository;
+  readonly roleSettings: RoleSettingsRepository;
   readonly ids: IdGenerator;
   readonly clock: Clock;
 }
@@ -311,6 +314,7 @@ function buildInMemoryDeps(): ServerDeps {
     ),
     approvals: new InMemoryApprovalRequestRepository(createDemoApprovals()),
     companySettings: new InMemoryCompanySettingsRepository(),
+    roleSettings: new InMemoryRoleSettingsRepository(),
     ids: new RandomUuidIdGenerator(),
     clock: new SystemClock(),
   };
@@ -331,6 +335,7 @@ async function buildPrismaDeps(): Promise<ServerDeps> {
     improvements: new db.PrismaImprovementRequestRepository(prisma),
     approvals: new db.PrismaApprovalRequestRepository(prisma),
     companySettings: new db.PrismaCompanySettingsRepository(prisma),
+    roleSettings: new db.PrismaRoleSettingsRepository(prisma),
     ids: new RandomUuidIdGenerator(),
     clock: new SystemClock(),
   };

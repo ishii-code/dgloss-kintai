@@ -11,7 +11,7 @@ import "server-only";
 import type { EmployeeId } from "@dgloss-kintai/contracts";
 
 import { getDeps } from "@/server/deps";
-import { resolveRole } from "@/server/role";
+import { resolveRoleWithSettings } from "@/server/role";
 import { readSessionEmployeeId } from "@/server/session";
 
 /** 管理者認可の結果。許可時は従業員 ID を伴う。 */
@@ -39,7 +39,9 @@ export async function checkAdmin(req: Request): Promise<AdminCheck> {
   if (employee === null) {
     return { ok: false, status: 401 };
   }
-  if (resolveRole(employee.employeeCode) !== "admin") {
+  // ロール設定（DB）を優先して管理者判定する（未設定は env/既定へフォールバック）。
+  const roleSettings = await deps.roleSettings.get();
+  if (resolveRoleWithSettings(employee.employeeCode, roleSettings) !== "admin") {
     return { ok: false, status: 403 };
   }
   return { ok: true, employeeId };

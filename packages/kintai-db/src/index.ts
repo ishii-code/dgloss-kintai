@@ -28,6 +28,10 @@ export {
   PrismaCompanySettingsRepository,
   companySettingsRowToDomain,
 } from "./companySettingsRepository.js";
+export {
+  PrismaRoleSettingsRepository,
+  roleSettingsRowToDomain,
+} from "./roleSettingsRepository.js";
 
 // マッパー（純粋関数）
 export {
