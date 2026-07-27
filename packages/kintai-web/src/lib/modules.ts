@@ -116,6 +116,17 @@ export const MODULES: readonly KintaiModule[] = [
     requiredRole: "general",
     showInNav: true,
   },
+  {
+    id: "leave",
+    label: "有給休暇",
+    description: "年次有給休暇の残日数・付与履歴・年5日取得義務を確認します。",
+    icon: "🏖️",
+    path: "/leave",
+    status: "active",
+    category: "attendance",
+    requiredRole: "general",
+    showInNav: true,
+  },
   // --- 人事・労務 -------------------------------------------------------
   {
     id: "employees",

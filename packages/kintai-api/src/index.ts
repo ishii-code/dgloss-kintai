@@ -43,6 +43,7 @@ export {
   monthlyClosingQuerySchema,
   shadowComparisonQuerySchema,
   payslipQuerySchema,
+  leaveBalanceQuerySchema,
 } from "./schema.js";
 export type {
   StampQueryParsed,
@@ -50,6 +51,7 @@ export type {
   MonthlyClosingQueryParsed,
   ShadowComparisonQueryParsed,
   PayslipQueryParsed,
+  LeaveBalanceQueryParsed,
 } from "./schema.js";
 
 // ユースケース
@@ -73,6 +75,17 @@ export { getShadowComparison } from "./getShadowComparison.js";
 export type { GetShadowComparisonDeps } from "./getShadowComparison.js";
 export { getPayslip } from "./getPayslip.js";
 export type { GetPayslipDeps } from "./getPayslip.js";
+export { getLeaveBalance } from "./getLeaveBalance.js";
+export type { GetLeaveBalanceDeps } from "./getLeaveBalance.js";
+// 有給残高の結果型・leave の型は jobs 経由で下流へ再輸出する。
+export type {
+  LeaveBalanceResult,
+  LeaveBalance,
+  LeaveBucketState,
+  LeaveGrant,
+  CurrentYearSummary,
+  FiveDayObligationStatus,
+} from "@dgloss-kintai/jobs";
 
 // 承認ワークフロー（申請・承認）ユースケース（Phase 4）
 export { createApprovalRequest } from "./createApprovalRequest.js";

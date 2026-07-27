@@ -54,6 +54,21 @@ export {
   type BuildPayslipOptions,
 } from "./payslip.js";
 
+// 年次有給休暇の残高（労基法第39条）。既存データ（入社日・勤怠の休暇区分）から算定。
+export {
+  buildLeaveBalance,
+  addMonths,
+  type LeaveBalanceResult,
+} from "./leaveBalance.js";
+// 下流（api・web）が型を単一経路で参照できるよう leave の型を再輸出する。
+export type {
+  LeaveBalance,
+  LeaveBucketState,
+  LeaveGrant,
+  CurrentYearSummary,
+  FiveDayObligationStatus,
+} from "@dgloss-kintai/leave";
+
 // jinjer からの移行（Ph0）。取得元（source）・書き込み先（sink）は port 注入。
 // 実 DB 実装・実ネットワークは持たない（batch.ts と同じ方針）。
 export {

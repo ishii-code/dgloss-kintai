@@ -136,6 +136,9 @@ importers:
       '@dgloss-kintai/core':
         specifier: workspace:*
         version: link:../kintai-core
+      '@dgloss-kintai/leave':
+        specifier: workspace:*
+        version: link:../kintai-leave
     devDependencies:
       typescript:
         specifier: ^5.7.3

@@ -64,6 +64,15 @@ export const payslipQuerySchema = z.object({
   commuteAllowance: z.number().int().min(0).optional(),
 });
 
+/**
+ * 有給休暇残高照会のクエリ。
+ * 従業員と基準日（`YYYY-MM-DD`）で引く。付与・取得は入社日・勤怠から導出する。
+ */
+export const leaveBalanceQuerySchema = z.object({
+  employeeId: z.string().min(1),
+  asOf: isoDateSchema,
+});
+
 export type StampQueryParsed = z.infer<typeof stampQuerySchema>;
 export type WorkDayQueryParsed = z.infer<typeof workDayQuerySchema>;
 export type MonthlyClosingQueryParsed = z.infer<
@@ -73,3 +82,4 @@ export type ShadowComparisonQueryParsed = z.infer<
   typeof shadowComparisonQuerySchema
 >;
 export type PayslipQueryParsed = z.infer<typeof payslipQuerySchema>;
+export type LeaveBalanceQueryParsed = z.infer<typeof leaveBalanceQuerySchema>;

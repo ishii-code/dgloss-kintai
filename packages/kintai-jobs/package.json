@@ -20,7 +20,8 @@
   },
   "dependencies": {
     "@dgloss-kintai/contracts": "workspace:*",
-    "@dgloss-kintai/core": "workspace:*"
+    "@dgloss-kintai/core": "workspace:*",
+    "@dgloss-kintai/leave": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^5.7.3",
