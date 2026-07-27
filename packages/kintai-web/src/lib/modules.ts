@@ -72,6 +72,8 @@ export interface KintaiModule {
   readonly phase?: number;
   /** 上部ナビ（主要タブ）に出すか。既定は false（ランチャーからのみ辿る）。 */
   readonly showInNav?: boolean;
+  /** 上部ナビのタブ下段に出す短い補足（例「日別」「総支給」）。dgloss ダッシュボード調。 */
+  readonly navSubLabel?: string;
 }
 
 /**
@@ -93,6 +95,7 @@ export const MODULES: readonly KintaiModule[] = [
     category: "attendance",
     requiredRole: "general",
     showInNav: true,
+    navSubLabel: "出退勤",
   },
   {
     id: "attendance",
@@ -104,6 +107,7 @@ export const MODULES: readonly KintaiModule[] = [
     category: "attendance",
     requiredRole: "general",
     showInNav: true,
+    navSubLabel: "日別",
   },
   {
     id: "closing",
@@ -115,6 +119,7 @@ export const MODULES: readonly KintaiModule[] = [
     category: "attendance",
     requiredRole: "general",
     showInNav: true,
+    navSubLabel: "割増/締め",
   },
   {
     id: "leave",
@@ -126,6 +131,7 @@ export const MODULES: readonly KintaiModule[] = [
     category: "attendance",
     requiredRole: "general",
     showInNav: true,
+    navSubLabel: "残日数",
   },
   // --- 人事・労務 -------------------------------------------------------
   {
@@ -200,6 +206,7 @@ export const MODULES: readonly KintaiModule[] = [
     category: "hr",
     requiredRole: "general",
     showInNav: true,
+    navSubLabel: "申請/承認",
   },
   // --- 給与 -------------------------------------------------------------
   {
@@ -212,6 +219,7 @@ export const MODULES: readonly KintaiModule[] = [
     category: "payroll",
     requiredRole: "admin",
     showInNav: true,
+    navSubLabel: "連携出力",
   },
   {
     id: "payroll-calc",
@@ -234,6 +242,7 @@ export const MODULES: readonly KintaiModule[] = [
     category: "payroll",
     requiredRole: "general",
     showInNav: true,
+    navSubLabel: "総支給",
   },
   {
     id: "bonus",
@@ -310,6 +319,7 @@ export const MODULES: readonly KintaiModule[] = [
     category: "support",
     requiredRole: "general",
     showInNav: true,
+    navSubLabel: "要望/不具合",
   },
   {
     id: "release-notes",
@@ -321,6 +331,7 @@ export const MODULES: readonly KintaiModule[] = [
     category: "support",
     requiredRole: "general",
     showInNav: true,
+    navSubLabel: "更新履歴",
   },
 ];
 
@@ -368,10 +379,12 @@ export function navModulesForRole(
   return modulesForRole(modules, role).filter((m) => m.showInNav === true);
 }
 
-/** 上部ナビの 1 リンク（表示名と遷移先）。 */
+/** 上部ナビの 1 リンク（表示名・補足・遷移先）。 */
 export interface NavLink {
   readonly href: string;
   readonly label: string;
+  /** タブ下段の短い補足（dgloss ダッシュボード調の2段表示）。 */
+  readonly sublabel?: string;
 }
 
 /**
@@ -386,10 +399,11 @@ export function navLinksForRole(
   role: Role | null,
 ): readonly NavLink[] {
   return [
-    { href: "/", label: "ホーム" },
+    { href: "/", label: "ホーム", sublabel: "総合" },
     ...navModulesForRole(modules, role).map((m) => ({
       href: m.path,
       label: m.label,
+      ...(m.navSubLabel !== undefined ? { sublabel: m.navSubLabel } : {}),
     })),
   ];
 }

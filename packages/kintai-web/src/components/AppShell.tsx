@@ -153,29 +153,38 @@ export function AppShell({ children }: { readonly children: ReactNode }): ReactN
       )}
 
       <header className="border-b border-neutral-200 bg-white">
-        <div className="mx-auto flex max-w-5xl flex-col gap-3 px-5 py-4">
+        <div className="mx-auto flex max-w-7xl flex-col gap-3 px-5 pt-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-baseline gap-2">
-              <span className="text-xl font-bold text-neutral-900">
-                ディグロス勤怠
-              </span>
+              <span className="text-xl font-bold text-primary">dgloss</span>
+              <span className="text-lg font-bold text-neutral-800">勤怠</span>
               <span className="rounded-full bg-neutral-100 px-2 py-0.5 font-mono text-xs tabular-nums text-neutral-500">
                 v{APP_VERSION}
               </span>
             </div>
             <div className="flex items-center gap-4">
-              <div className="flex flex-col items-end">
-                <span className="text-xs text-neutral-400">サインイン中</span>
-                <span className="text-base font-bold text-neutral-900">
-                  {employee?.name ?? "—"}
+              <div className="flex items-center gap-2">
+                <div className="flex flex-col items-end">
+                  <span className="text-base font-bold text-neutral-900">
+                    {employee?.name ?? "—"}
+                  </span>
                   {employee !== null && (
-                    <span className="ml-2 font-mono text-xs tabular-nums text-neutral-400">
+                    <span className="font-mono text-xs tabular-nums text-neutral-400">
                       {employee.employeeCode}
                     </span>
                   )}
+                </div>
+                <span
+                  className={`rounded-full px-3 py-1 text-xs font-bold ${
+                    role === "admin"
+                      ? "bg-neutral-800 text-white"
+                      : "bg-neutral-200 text-neutral-600"
+                  }`}
+                >
+                  {role === "admin" ? "管理者" : "一般"}
                 </span>
               </div>
-              <div className="flex flex-col items-end">
+              <div className="hidden flex-col items-end sm:flex">
                 <span className="text-xs text-neutral-400">データ更新</span>
                 <span className="font-mono text-sm tabular-nums text-neutral-600">
                   {updatedAt === null ? "—" : UPDATED_FMT.format(updatedAt)}
@@ -191,7 +200,7 @@ export function AppShell({ children }: { readonly children: ReactNode }): ReactN
             </div>
           </div>
 
-          <nav className="-mb-px flex flex-wrap gap-1">
+          <nav className="flex flex-nowrap gap-1 overflow-x-auto">
             {navLinks.map((item) => {
               const active = isActive(item.href, pathname);
               return (
@@ -199,13 +208,16 @@ export function AppShell({ children }: { readonly children: ReactNode }): ReactN
                   key={item.href}
                   href={item.href}
                   aria-current={active ? "page" : undefined}
-                  className={`rounded-t-lg px-4 py-2 text-base font-bold transition-colors ${
+                  className={`flex shrink-0 flex-col items-center gap-0.5 border-b-2 px-4 py-2 text-center transition-colors ${
                     active
-                      ? "bg-primary text-primary-foreground"
-                      : "text-neutral-500 hover:bg-neutral-100 hover:text-neutral-800"
+                      ? "border-primary text-neutral-900"
+                      : "border-transparent text-neutral-400 hover:border-neutral-200 hover:text-neutral-700"
                   }`}
                 >
-                  {item.label}
+                  <span className="text-sm font-bold">{item.label}</span>
+                  <span className="text-[11px] leading-none text-neutral-400">
+                    {item.sublabel ?? " "}
+                  </span>
                 </Link>
               );
             })}
@@ -213,7 +225,7 @@ export function AppShell({ children }: { readonly children: ReactNode }): ReactN
         </div>
       </header>
 
-      <main className="mx-auto max-w-5xl px-5 py-6">{children}</main>
+      <main className="mx-auto max-w-7xl px-5 py-6">{children}</main>
     </div>
   );
 }

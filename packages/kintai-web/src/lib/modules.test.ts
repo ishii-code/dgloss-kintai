@@ -95,7 +95,8 @@ describe("modulesForRole", () => {
 describe("navLinksForRole", () => {
   it("先頭は必ずホームである", () => {
     const links = navLinksForRole(MODULES, "general");
-    expect(links[0]).toEqual({ href: "/", label: "ホーム" });
+    expect(links[0]?.href).toBe("/");
+    expect(links[0]?.label).toBe("ホーム");
   });
 
   it("admin の主要タブは general の主要タブを包含する", () => {
