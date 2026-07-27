@@ -147,16 +147,61 @@ async function main() {
       : null;
   if (arr) console.log(`    件数: ${arr.length}`);
 
-  // マッパー確定用に、非個人情報のコード項目だけ値を表示する（氏名・住所・生年月日等は出さない）。
+  // 全項目名を深く展開（値は出さない）。給与・勤務条件が深い階層に無いか確認する。
   const rec = arr?.[0];
   if (rec) {
-    const c = rec.company ?? {};
-    console.log("\n    参考（コード項目の値のみ・氏名等は非表示）:");
-    console.log("      id:", JSON.stringify(rec.id));
-    console.log("      company.employment_classification:", JSON.stringify(c.employment_classification));
-    console.log("      company.enrollment_classification:", JSON.stringify(c.enrollment_classification));
-    console.log("      company.joined_on(型/例):", typeof c.joined_on, JSON.stringify(String(c.joined_on ?? "").slice(0, 10)));
-    console.log("      staff系の項目があるか:", Object.keys(rec).concat(Object.keys(c)).filter((k) => /staff|code|number|employee|社員/i.test(k)));
+    console.log("\n[3] 一覧APIの全項目名（深く展開・値は非表示）:");
+    console.log(JSON.stringify(shape(rec, 8), null, 2));
+
+    // 給与・勤務条件に関係しそうな項目名を全階層から拾う。
+    const keys = [];
+    const walk = (o, path) => {
+      if (Array.isArray(o)) return o.length ? walk(o[0], `${path}[]`) : undefined;
+      if (o && typeof o === "object")
+        for (const k of Object.keys(o)) {
+          keys.push(`${path}${k}`);
+          walk(o[k], `${path}${k}.`);
+        }
+    };
+    walk(rec, "");
+    const hitKeys = keys.filter((k) =>
+      /salary|wage|pay|給与|基本給|allowance|overtime|残業|work_system|勤務|office|department|所属|group|position|役職|manager|監督|scheduled|所定|employ|社員|staff|code|number/i.test(
+        k,
+      ),
+    );
+    console.log("\n    給与・勤務・所属・社員番号 に関係しそうな項目名:");
+    console.log(hitKeys.length ? hitKeys.join("\n") : "  （見当たらず）");
+
+    // 詳細（個別取得）エンドポイントも確認する（一覧に無い情報が入る場合がある）。
+    const id = rec.id;
+    if (id !== undefined) {
+      const dUrl = `${BASE}/v1/employees/${encodeURIComponent(String(id))}`;
+      console.log(`\n[4] 従業員詳細: GET ${dUrl}`);
+      const dRes = await fetch(dUrl, {
+        method: "GET",
+        headers: {
+          Accept: "application/json",
+          Authorization: `Bearer ${token}`,
+          "X-API-KEY": API_KEY,
+          ...(COMPANY ? { "Company-Code": COMPANY } : {}),
+        },
+      });
+      console.log(`    status: ${dRes.status}`);
+      const dText = await dRes.text();
+      let dJson;
+      try {
+        dJson = JSON.parse(dText);
+      } catch {
+        dJson = null;
+      }
+      if (dRes.status === 200 && dJson) {
+        const drec = Array.isArray(dJson.data) ? dJson.data[0] : dJson.data ?? dJson;
+        console.log("    詳細の全項目名（深く展開・値は非表示）:");
+        console.log(JSON.stringify(shape(drec, 8), null, 2));
+      } else if (dJson?.errors?.[0]) {
+        console.log("    詳細エラー:", JSON.stringify(dJson.errors[0]));
+      }
+    }
   }
 }
 
