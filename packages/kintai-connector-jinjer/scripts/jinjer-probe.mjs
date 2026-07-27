@@ -76,31 +76,78 @@ async function main() {
   }
   console.log("    ✅ トークン取得OK");
 
-  // --- 2) 従業員エンドポイント ---
-  const empUrl = `${BASE}/${EMP_PATH}`;
-  console.log(`\n[2] 従業員取得: GET ${empUrl}`);
-  const empRes = await fetch(empUrl, {
-    method: "GET",
-    headers: {
-      Accept: "application/json",
-      Authorization: `Bearer ${token}`,
-      "X-API-KEY": API_KEY,
-      ...(COMPANY ? { "Company-Code": COMPANY } : {}),
-    },
-  });
-  const empText = await empRes.text();
-  console.log(`    status: ${empRes.status}`);
-  let empJson;
-  try {
-    empJson = JSON.parse(empText);
-  } catch {
-    console.log("    応答(JSONでない):", empText.slice(0, 500));
+  // --- 2) 従業員エンドポイントの候補を順に試す ---
+  // 環境変数 JINJER_EMPLOYEES_PATH があれば最優先で試す。
+  const candidates = [
+    ...(process.env.JINJER_EMPLOYEES_PATH ? [EMP_PATH] : []),
+    "v1/employees",
+    "v1/employee",
+    "v1/employee_data",
+    "v1/staff",
+    "v1/staffs",
+    "v1/staff_data",
+    "v2/employees",
+    "v1/employees/index",
+  ];
+
+  async function tryEmp(path, withCompanyQuery) {
+    const qs = withCompanyQuery && COMPANY ? `?company_code=${encodeURIComponent(COMPANY)}` : "";
+    const url = `${BASE}/${path}${qs}`;
+    const res = await fetch(url, {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+        "X-API-KEY": API_KEY,
+        ...(COMPANY ? { "Company-Code": COMPANY } : {}),
+      },
+    });
+    const text = await res.text();
+    let json;
+    try {
+      json = JSON.parse(text);
+    } catch {
+      json = null;
+    }
+    const msg = json?.errors?.[0]?.message ?? json?.errors?.[0]?.reason ?? "";
+    return { url, status: res.status, json, msg, text };
+  }
+
+  console.log(`\n[2] 従業員エンドポイントの候補を順に試します`);
+  let hit = null;
+  for (const path of candidates) {
+    const r = await tryEmp(path, false);
+    console.log(`    ${r.status}  GET /${path}${r.msg ? "  … " + r.msg : ""}`);
+    if (r.status === 200) {
+      hit = r;
+      break;
+    }
+    // 404以外（例: 400 会社コード必須）なら company_code 付きも試す
+    if (r.status !== 404 && COMPANY) {
+      const r2 = await tryEmp(path, true);
+      console.log(`    ${r2.status}  GET /${path}?company_code=…${r2.msg ? "  … " + r2.msg : ""}`);
+      if (r2.status === 200) {
+        hit = r2;
+        break;
+      }
+    }
+  }
+
+  if (hit === null) {
+    console.log("\n    どの候補も 200 になりませんでした。上のstatusとメッセージを貼ってください。");
+    console.log("    正しいパスが分かっている場合: JINJER_EMPLOYEES_PATH=\"v1/xxx\" を付けて再実行できます。");
     return;
   }
+
+  console.log(`\n    ✅ 見つかりました: ${hit.url}`);
   console.log("    応答の形（項目名だけ・値は非表示）:");
-  console.log(JSON.stringify(shape(empJson), null, 2));
-  if (Array.isArray(empJson?.data)) console.log(`    件数(data): ${empJson.data.length}`);
-  if (Array.isArray(empJson?.result)) console.log(`    件数(result): ${empJson.result.length}`);
+  console.log(JSON.stringify(shape(hit.json), null, 2));
+  const arr = Array.isArray(hit.json?.data)
+    ? hit.json.data
+    : Array.isArray(hit.json?.result)
+      ? hit.json.result
+      : null;
+  if (arr) console.log(`    件数: ${arr.length}`);
 }
 
 main().catch((e) => {
