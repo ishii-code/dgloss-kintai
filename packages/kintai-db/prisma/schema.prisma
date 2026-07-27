@@ -267,6 +267,18 @@ enum ApprovalRequestStatus {
   cancelled
 }
 
+/// 企業設定（会社全体で1レコードのシングルトン）。
+model CompanySettings {
+  /// 固定 ID（シングルトン。常に "default"）。
+  id                   String   @id @default("default")
+  companyName          String
+  representativeName   String
+  address              String
+  /// 年度開始月（1-12）。36協定・年次集計の起点。
+  fiscalYearStartMonth Int
+  updatedAt            DateTime
+}
+
 /// 承認申請（ワークフロー・申請/承認）。
 model ApprovalRequest {
   id                  String                @id

@@ -52,10 +52,12 @@ async function fetchEmployees(): Promise<readonly EmployeeSummary[]> {
 async function fetchReport(
   employeeId: string,
   year: number,
+  startMonth: number,
 ): Promise<ComplianceReportResponse> {
   const params = new URLSearchParams({
     employeeId,
     year: String(year),
+    startMonth: String(startMonth),
   });
   const res = await fetch(`/api/admin/compliance?${params.toString()}`, {
     cache: "no-store",
@@ -67,20 +69,43 @@ async function fetchReport(
   return json.report;
 }
 
+/** 企業設定から年度開始月を取得する（失敗時は 4）。 */
+async function fetchFiscalStartMonth(): Promise<number> {
+  try {
+    const res = await fetch("/api/admin/settings/company", {
+      cache: "no-store",
+    });
+    if (!res.ok) {
+      return 4;
+    }
+    const json = (await res.json()) as {
+      settings: { fiscalYearStartMonth: number };
+    };
+    return json.settings.fiscalYearStartMonth;
+  } catch {
+    return 4;
+  }
+}
+
 const YEAR_OPTIONS = [2024, 2025, 2026, 2027];
 
 function ComplianceBody(): ReactNode {
   const [employees, setEmployees] = useState<readonly EmployeeSummary[]>([]);
   const [employeeId, setEmployeeId] = useState<string>("");
   const [year, setYear] = useState<number>(2026);
+  const [startMonth, setStartMonth] = useState<number>(4);
   const [report, setReport] = useState<ComplianceReportResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     void (async () => {
-      const list = await fetchEmployees();
+      const [list, fiscalStart] = await Promise.all([
+        fetchEmployees(),
+        fetchFiscalStartMonth(),
+      ]);
       setEmployees(list);
+      setStartMonth(fiscalStart);
       if (list.length > 0 && employeeId === "") {
         setEmployeeId(list[0]!.id);
       }
@@ -93,7 +118,7 @@ function ComplianceBody(): ReactNode {
     }
     setLoading(true);
     try {
-      setReport(await fetchReport(employeeId, year));
+      setReport(await fetchReport(employeeId, year, startMonth));
       setError(null);
     } catch (e) {
       setError(e instanceof Error ? e.message : "取得に失敗しました");
@@ -101,7 +126,7 @@ function ComplianceBody(): ReactNode {
     } finally {
       setLoading(false);
     }
-  }, [employeeId, year]);
+  }, [employeeId, year, startMonth]);
 
   useEffect(() => {
     void reload();
@@ -140,7 +165,7 @@ function ComplianceBody(): ReactNode {
         </div>
         <div className="flex flex-col gap-1">
           <label htmlFor="year" className="text-sm font-medium text-neutral-600">
-            年度（4月起算）
+            年度（{startMonth}月起算）
           </label>
           <select
             id="year"

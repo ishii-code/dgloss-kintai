@@ -24,6 +24,10 @@ export {
   PrismaApprovalRequestRepository,
   approvalRequestRowToDomain,
 } from "./approvalRequestRepository.js";
+export {
+  PrismaCompanySettingsRepository,
+  companySettingsRowToDomain,
+} from "./companySettingsRepository.js";
 
 // マッパー（純粋関数）
 export {

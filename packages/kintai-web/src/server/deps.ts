@@ -15,6 +15,7 @@ import "server-only";
 
 import {
   InMemoryApprovalRequestRepository,
+  InMemoryCompanySettingsRepository,
   InMemoryEmployeeRepository,
   InMemoryImprovementRequestRepository,
   InMemoryMonthlyClosingRepository,
@@ -24,6 +25,7 @@ import {
 import type {
   ApprovalRequestRepository,
   Clock,
+  CompanySettingsRepository,
   EmployeeRepository,
   IdGenerator,
   ImprovementRequestRepository,
@@ -60,6 +62,7 @@ export interface ServerDeps {
   readonly closings: MonthlyClosingRepository;
   readonly improvements: ImprovementRequestRepository;
   readonly approvals: ApprovalRequestRepository;
+  readonly companySettings: CompanySettingsRepository;
   readonly ids: IdGenerator;
   readonly clock: Clock;
 }
@@ -307,6 +310,7 @@ function buildInMemoryDeps(): ServerDeps {
       createDemoImprovements(),
     ),
     approvals: new InMemoryApprovalRequestRepository(createDemoApprovals()),
+    companySettings: new InMemoryCompanySettingsRepository(),
     ids: new RandomUuidIdGenerator(),
     clock: new SystemClock(),
   };
@@ -326,6 +330,7 @@ async function buildPrismaDeps(): Promise<ServerDeps> {
     closings: new db.PrismaMonthlyClosingRepository(prisma),
     improvements: new db.PrismaImprovementRequestRepository(prisma),
     approvals: new db.PrismaApprovalRequestRepository(prisma),
+    companySettings: new db.PrismaCompanySettingsRepository(prisma),
     ids: new RandomUuidIdGenerator(),
     clock: new SystemClock(),
   };

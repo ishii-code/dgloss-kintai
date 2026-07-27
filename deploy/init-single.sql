@@ -3,7 +3,7 @@
 -- 何度実行してもよい（初期セットアップのため既存を掃除して作り直す）。
 DO $$
 BEGIN
-  DROP TABLE IF EXISTS "ApprovalRequest","ImprovementRequest","MonthlyClosing","WorkDay","Stamp","EmploymentContract","Employee" CASCADE;
+  DROP TABLE IF EXISTS "CompanySettings","ApprovalRequest","ImprovementRequest","MonthlyClosing","WorkDay","Stamp","EmploymentContract","Employee" CASCADE;
   DROP TYPE IF EXISTS "WorkSystem","OfficeDivision","EmploymentType","StampType","StampSource","DayType","LeaveType","ClosingStatus","ImprovementRequestStatus","ImprovementRequestCategory","ApprovalRequestType","ApprovalRequestStatus";
 
   CREATE TYPE "WorkSystem" AS ENUM ('fixed','flex','shift','discretionary');
@@ -90,6 +90,12 @@ BEGIN
   CREATE INDEX "ApprovalRequest_status_idx" ON "ApprovalRequest"("status");
   CREATE INDEX "ApprovalRequest_applicantEmployeeId_idx" ON "ApprovalRequest"("applicantEmployeeId");
   CREATE INDEX "ApprovalRequest_createdAt_idx" ON "ApprovalRequest"("createdAt");
+
+  CREATE TABLE "CompanySettings" (
+    "id" TEXT NOT NULL, "companyName" TEXT NOT NULL,
+    "representativeName" TEXT NOT NULL, "address" TEXT NOT NULL,
+    "fiscalYearStartMonth" INTEGER NOT NULL, "updatedAt" TIMESTAMP(3) NOT NULL,
+    CONSTRAINT "CompanySettings_pkey" PRIMARY KEY ("id"));
 
   ALTER TABLE "EmploymentContract" ADD CONSTRAINT "EmploymentContract_employeeId_fkey" FOREIGN KEY ("employeeId") REFERENCES "Employee"("id") ON DELETE CASCADE ON UPDATE CASCADE;
   ALTER TABLE "Stamp" ADD CONSTRAINT "Stamp_employeeId_fkey" FOREIGN KEY ("employeeId") REFERENCES "Employee"("id") ON DELETE CASCADE ON UPDATE CASCADE;

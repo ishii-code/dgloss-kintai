@@ -239,13 +239,12 @@ export const MODULES: readonly KintaiModule[] = [
   {
     id: "settings-company",
     label: "企業設定",
-    description: "会社情報・就業規則・締め日などの基本設定を行います。",
+    description: "会社情報・年度開始月などの基本設定を行います。",
     icon: "⚙️",
     path: "/settings/company",
-    status: "soon",
+    status: "active",
     category: "settings",
     requiredRole: "admin",
-    phase: 2,
   },
   {
     id: "settings-hr",

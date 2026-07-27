@@ -32,6 +32,7 @@ export type {
   ShadowComparisonRepository,
   ImprovementRequestRepository,
   ApprovalRequestRepository,
+  CompanySettingsRepository,
   IdGenerator,
   Clock,
 } from "./ports.js";
@@ -117,6 +118,12 @@ export type { DecideApprovalRequestDeps } from "./decideApprovalRequest.js";
 export { cancelApprovalRequest } from "./cancelApprovalRequest.js";
 export type { CancelApprovalRequestDeps } from "./cancelApprovalRequest.js";
 
+// 企業設定（Phase 4・管理者専用）
+export { getCompanySettings } from "./getCompanySettings.js";
+export type { GetCompanySettingsDeps } from "./getCompanySettings.js";
+export { updateCompanySettings } from "./updateCompanySettings.js";
+export type { UpdateCompanySettingsDeps } from "./updateCompanySettings.js";
+
 // 従業員管理ユースケース（Phase 2・管理者専用）
 export { createEmployee } from "./createEmployee.js";
 export type { CreateEmployeeDeps } from "./createEmployee.js";
@@ -169,6 +176,7 @@ export {
   InMemoryShadowComparisonRepository,
   InMemoryImprovementRequestRepository,
   InMemoryApprovalRequestRepository,
+  InMemoryCompanySettingsRepository,
   SequentialIdGenerator,
   FixedClock,
 } from "./inMemory.js";

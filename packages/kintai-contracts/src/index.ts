@@ -53,6 +53,16 @@ export type {
 export type { Payslip, PayslipLine } from "./payslip.js";
 
 export type {
+  CompanySettings,
+  CompanySettingsInput,
+  CompanySettingsInputParsed,
+} from "./companySettings.js";
+export {
+  companySettingsInputSchema,
+  DEFAULT_COMPANY_SETTINGS,
+} from "./companySettings.js";
+
+export type {
   ApprovalRequest,
   ApprovalRequestInput,
   ApprovalRequestType,

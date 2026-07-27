@@ -9,6 +9,7 @@
 import type {
   ApprovalRequest,
   ApprovalRequestId,
+  CompanySettings,
   Employee,
   EmployeeId,
   ImprovementRequest,
@@ -107,6 +108,14 @@ export interface ApprovalRequestRepository {
   findById(id: ApprovalRequestId): Promise<ApprovalRequest | null>;
   /** 全承認申請を新しい順で返す。 */
   list(): Promise<readonly ApprovalRequest[]>;
+}
+
+/** 企業設定（シングルトン）の永続化。 */
+export interface CompanySettingsRepository {
+  /** 保存済みの企業設定を返す。未保存なら null（呼び出し側が既定へフォールバック）。 */
+  get(): Promise<CompanySettings | null>;
+  /** 企業設定を保存する（シングルトンの upsert）。 */
+  save(settings: CompanySettings): Promise<void>;
 }
 
 /** 時刻 port。テストでは固定時刻を注入できる。 */

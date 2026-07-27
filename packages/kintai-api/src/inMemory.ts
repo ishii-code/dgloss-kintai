@@ -8,6 +8,7 @@
 import type {
   ApprovalRequest,
   ApprovalRequestId,
+  CompanySettings,
   Employee,
   EmployeeId,
   ImprovementRequest,
@@ -24,6 +25,7 @@ import type {
 import type {
   ApprovalRequestRepository,
   Clock,
+  CompanySettingsRepository,
   EmployeeRepository,
   IdGenerator,
   ImprovementRequestRepository,
@@ -237,6 +239,25 @@ export class InMemoryApprovalRequestRepository
     return [...this.items].sort((a, b) =>
       a.createdAt < b.createdAt ? 1 : a.createdAt > b.createdAt ? -1 : 0,
     );
+  }
+}
+
+/** 企業設定（シングルトン）の in-memory リポジトリ。 */
+export class InMemoryCompanySettingsRepository
+  implements CompanySettingsRepository
+{
+  private current: CompanySettings | null;
+
+  constructor(seed: CompanySettings | null = null) {
+    this.current = seed;
+  }
+
+  async get(): Promise<CompanySettings | null> {
+    return this.current;
+  }
+
+  async save(settings: CompanySettings): Promise<void> {
+    this.current = settings;
   }
 }
 
