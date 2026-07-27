@@ -36,3 +36,18 @@ export function floorDiv(numerator: bigint, denominator: bigint): bigint {
   }
   return numerator / denominator;
 }
+
+/**
+ * 非負の分子を分母で割り、四捨五入（0.5 は切り上げ）した整数商を返す。
+ * 賞与など法令で端数処理が定められない金額の慣行的な丸めに用いる
+ * （割増・控除は切り上げ／切り捨てが規程で定まるため本関数は使わない）。
+ */
+export function roundDiv(numerator: bigint, denominator: bigint): bigint {
+  if (denominator <= 0n) {
+    throw new RangeError("denominator must be a positive bigint");
+  }
+  if (numerator < 0n) {
+    throw new RangeError("numerator must be a non-negative bigint");
+  }
+  return (numerator * 2n + denominator) / (denominator * 2n);
+}

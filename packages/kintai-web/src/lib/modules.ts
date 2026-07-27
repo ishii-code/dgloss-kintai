@@ -235,6 +235,16 @@ export const MODULES: readonly KintaiModule[] = [
     requiredRole: "general",
     showInNav: true,
   },
+  {
+    id: "bonus",
+    label: "賞与計算",
+    description: "基本給・支給月数・評価係数から賞与（総支給まで）を試算します。",
+    icon: "🎁",
+    path: "/bonus",
+    status: "active",
+    category: "payroll",
+    requiredRole: "admin",
+  },
   // --- 各種設定 ---------------------------------------------------------
   {
     id: "settings-company",

@@ -54,6 +54,9 @@ export {
   type BuildPayslipOptions,
 } from "./payslip.js";
 
+// 賞与明細（総支給まで）。基本給×支給月数×評価×按分。非正規は賞与なし（第72条）。
+export { buildBonusStatement } from "./bonusStatement.js";
+
 // 年次有給休暇の残高（労基法第39条）。既存データ（入社日・勤怠の休暇区分）から算定。
 export {
   buildLeaveBalance,

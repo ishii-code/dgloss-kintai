@@ -79,6 +79,8 @@ export { getShadowComparison } from "./getShadowComparison.js";
 export type { GetShadowComparisonDeps } from "./getShadowComparison.js";
 export { getPayslip } from "./getPayslip.js";
 export type { GetPayslipDeps } from "./getPayslip.js";
+export { computeBonus } from "./computeBonus.js";
+export type { ComputeBonusDeps } from "./computeBonus.js";
 export { getLeaveBalance } from "./getLeaveBalance.js";
 export type { GetLeaveBalanceDeps } from "./getLeaveBalance.js";
 // 有給残高の結果型・leave の型は jobs 経由で下流へ再輸出する。

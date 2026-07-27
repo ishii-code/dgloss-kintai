@@ -26,7 +26,13 @@ export {
 } from "./config.js";
 export type { WagePremiumConfig } from "./config.js";
 export { RATE_BP, LINE_RATE_BP } from "./rates.js";
-export { ceilDiv, floorDiv } from "./money.js";
+export { ceilDiv, floorDiv, roundDiv } from "./money.js";
+export { calculateBonus } from "./bonus.js";
+export type {
+  BonusProfile,
+  BonusParams,
+  BonusBreakdown,
+} from "./bonus.js";
 export type {
   ClassifiedWorkMinutes,
   EmployeeWageProfile,

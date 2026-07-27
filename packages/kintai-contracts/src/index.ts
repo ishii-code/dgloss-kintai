@@ -53,6 +53,13 @@ export type {
 export type { Payslip, PayslipLine } from "./payslip.js";
 
 export type {
+  BonusStatement,
+  BonusStatementLine,
+  BonusParamsParsed,
+} from "./bonus.js";
+export { bonusParamsSchema } from "./bonus.js";
+
+export type {
   CompanySettings,
   CompanySettingsInput,
   CompanySettingsInputParsed,
