@@ -159,6 +159,16 @@ export const MODULES: readonly KintaiModule[] = [
     requiredRole: "admin",
   },
   {
+    id: "compliance",
+    label: "36協定監視",
+    description: "時間外労働の上限規制（労基法第36条）を年度・従業員ごとに監視します。",
+    icon: "🚦",
+    path: "/compliance",
+    status: "active",
+    category: "hr",
+    requiredRole: "admin",
+  },
+  {
     id: "groups",
     label: "所属グループ",
     description: "部署・拠点・チームなどの所属グループを編成します。",

@@ -69,6 +69,22 @@ export type {
   FiveDayObligationStatus,
 } from "@dgloss-kintai/leave";
 
+// 36協定・時間外労働上限の監視（労基法第36条）。月次締めから評価する。
+export {
+  buildComplianceReport,
+  type ComplianceReportResult,
+} from "./complianceReport.js";
+export type {
+  ComplianceReport,
+  ComplianceAlert,
+  ComplianceLevel,
+  ComplianceCheckKind,
+  ComplianceUnit,
+  AlertPeriod,
+  MonthlyOvertime,
+  ThirtySixAgreementLimits,
+} from "@dgloss-kintai/compliance";
+
 // jinjer からの移行（Ph0）。取得元（source）・書き込み先（sink）は port 注入。
 // 実 DB 実装・実ネットワークは持たない（batch.ts と同じ方針）。
 export {

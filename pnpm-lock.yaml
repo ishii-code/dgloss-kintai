@@ -130,6 +130,9 @@ importers:
 
   packages/kintai-jobs:
     dependencies:
+      '@dgloss-kintai/compliance':
+        specifier: workspace:*
+        version: link:../kintai-compliance
       '@dgloss-kintai/contracts':
         specifier: workspace:*
         version: link:../kintai-contracts

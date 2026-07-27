@@ -73,6 +73,17 @@ export const leaveBalanceQuerySchema = z.object({
   asOf: isoDateSchema,
 });
 
+/**
+ * 36協定コンプライアンス照会のクエリ。
+ * 従業員・36協定年度の起点年月から12か月分の月次締めを評価する。
+ * startMonth 省略時は 4（4月起算の年度）。
+ */
+export const complianceQuerySchema = z.object({
+  employeeId: z.string().min(1),
+  year: z.number().int().min(2000).max(2100),
+  startMonth: z.number().int().min(1).max(12).optional(),
+});
+
 export type StampQueryParsed = z.infer<typeof stampQuerySchema>;
 export type WorkDayQueryParsed = z.infer<typeof workDayQuerySchema>;
 export type MonthlyClosingQueryParsed = z.infer<
@@ -83,3 +94,4 @@ export type ShadowComparisonQueryParsed = z.infer<
 >;
 export type PayslipQueryParsed = z.infer<typeof payslipQuerySchema>;
 export type LeaveBalanceQueryParsed = z.infer<typeof leaveBalanceQuerySchema>;
+export type ComplianceQueryParsed = z.infer<typeof complianceQuerySchema>;

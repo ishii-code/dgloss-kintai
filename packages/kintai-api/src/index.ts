@@ -44,6 +44,7 @@ export {
   shadowComparisonQuerySchema,
   payslipQuerySchema,
   leaveBalanceQuerySchema,
+  complianceQuerySchema,
 } from "./schema.js";
 export type {
   StampQueryParsed,
@@ -52,6 +53,7 @@ export type {
   ShadowComparisonQueryParsed,
   PayslipQueryParsed,
   LeaveBalanceQueryParsed,
+  ComplianceQueryParsed,
 } from "./schema.js";
 
 // ユースケース
@@ -85,6 +87,24 @@ export type {
   LeaveGrant,
   CurrentYearSummary,
   FiveDayObligationStatus,
+} from "@dgloss-kintai/jobs";
+
+export { getComplianceReport } from "./getComplianceReport.js";
+export type {
+  GetComplianceReportDeps,
+  ComplianceReportResponse,
+} from "./getComplianceReport.js";
+// 36協定レポートの結果型・compliance の型は jobs 経由で下流へ再輸出する。
+export type {
+  ComplianceReportResult,
+  ComplianceReport,
+  ComplianceAlert,
+  ComplianceLevel,
+  ComplianceCheckKind,
+  ComplianceUnit,
+  AlertPeriod,
+  MonthlyOvertime,
+  ThirtySixAgreementLimits,
 } from "@dgloss-kintai/jobs";
 
 // 承認ワークフロー（申請・承認）ユースケース（Phase 4）

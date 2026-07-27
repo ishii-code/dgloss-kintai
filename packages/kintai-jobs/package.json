@@ -19,6 +19,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@dgloss-kintai/compliance": "workspace:*",
     "@dgloss-kintai/contracts": "workspace:*",
     "@dgloss-kintai/core": "workspace:*",
     "@dgloss-kintai/leave": "workspace:*"
