@@ -140,14 +140,24 @@ async function main() {
   }
 
   console.log(`\n    ✅ 見つかりました: ${hit.url}`);
-  console.log("    応答の形（項目名だけ・値は非表示）:");
-  console.log(JSON.stringify(shape(hit.json), null, 2));
   const arr = Array.isArray(hit.json?.data)
     ? hit.json.data
     : Array.isArray(hit.json?.result)
       ? hit.json.result
       : null;
   if (arr) console.log(`    件数: ${arr.length}`);
+
+  // マッパー確定用に、非個人情報のコード項目だけ値を表示する（氏名・住所・生年月日等は出さない）。
+  const rec = arr?.[0];
+  if (rec) {
+    const c = rec.company ?? {};
+    console.log("\n    参考（コード項目の値のみ・氏名等は非表示）:");
+    console.log("      id:", JSON.stringify(rec.id));
+    console.log("      company.employment_classification:", JSON.stringify(c.employment_classification));
+    console.log("      company.enrollment_classification:", JSON.stringify(c.enrollment_classification));
+    console.log("      company.joined_on(型/例):", typeof c.joined_on, JSON.stringify(String(c.joined_on ?? "").slice(0, 10)));
+    console.log("      staff系の項目があるか:", Object.keys(rec).concat(Object.keys(c)).filter((k) => /staff|code|number|employee|社員/i.test(k)));
+  }
 }
 
 main().catch((e) => {
