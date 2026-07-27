@@ -12,7 +12,7 @@ import type {
 import type { WorkDayRepository } from "@dgloss-kintai/api";
 import type { WorkDaySourcePort } from "@dgloss-kintai/jobs";
 import type { PrismaClient } from "@prisma/client";
-import { isoDateToDate, workDayRowToDomain } from "./mappers.js";
+import { isoDateToDate, workDayRowToDomain, workDayToRow } from "./mappers.js";
 
 /** 年月の当月1日と翌月1日（排他上限）の Date を得る。 */
 function monthBounds(period: YearMonth): { gte: Date; lt: Date } {
@@ -59,5 +59,17 @@ export class PrismaWorkDayRepository
       orderBy: { date: "asc" },
     });
     return rows.map(workDayRowToDomain);
+  }
+
+  /** 日次勤怠を保存する（従業員×暦日で upsert・冪等）。打刻の日次化で用いる。 */
+  async save(workDay: WorkDay): Promise<void> {
+    const row = workDayToRow(workDay);
+    await this.prisma.workDay.upsert({
+      where: {
+        employeeId_date: { employeeId: row.employeeId, date: row.date },
+      },
+      create: row,
+      update: row,
+    });
   }
 }

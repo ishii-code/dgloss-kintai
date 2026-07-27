@@ -73,6 +73,11 @@ export { getEmployee, employeeQuerySchema } from "./getEmployee.js";
 export type { GetEmployeeDeps } from "./getEmployee.js";
 export { listWorkDays } from "./listWorkDays.js";
 export type { ListWorkDaysDeps } from "./listWorkDays.js";
+export { buildDailyAttendance } from "./buildDailyAttendance.js";
+export type {
+  BuildDailyAttendanceDeps,
+  BuildDailyResult,
+} from "./buildDailyAttendance.js";
 export { getMonthlyClosing } from "./getMonthlyClosing.js";
 export type { GetMonthlyClosingDeps } from "./getMonthlyClosing.js";
 export { runMonthlyClosingForPeriod } from "./runMonthlyClosingForPeriod.js";

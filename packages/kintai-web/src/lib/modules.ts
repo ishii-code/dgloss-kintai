@@ -135,8 +135,8 @@ export const MODULES: readonly KintaiModule[] = [
   },
   {
     id: "closing-run",
-    label: "締め実行",
-    description: "対象月の勤怠から月次締めを算定・確定し、給与明細・36協定へ反映します。",
+    label: "締め処理",
+    description: "打刻を日次勤怠へ変換し、対象月の月次締め（割増・控除）を確定します。給与明細・36協定へ反映されます。",
     icon: "▶️",
     path: "/closing-run",
     status: "active",

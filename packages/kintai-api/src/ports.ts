@@ -37,7 +37,7 @@ export interface StampRepository {
   ): Promise<readonly Stamp[]>;
 }
 
-/** 日次勤怠の照会。 */
+/** 日次勤怠の照会・保存。 */
 export interface WorkDayRepository {
   /** 従業員の日次勤怠を暦日範囲（両端含む）で取得する。日付昇順を期待する。 */
   listByEmployeeAndDateRange(
@@ -45,6 +45,8 @@ export interface WorkDayRepository {
     from: IsoDate,
     to: IsoDate,
   ): Promise<readonly WorkDay[]>;
+  /** 日次勤怠を保存する（従業員×暦日で upsert・冪等）。打刻の日次化で用いる。 */
+  save(workDay: WorkDay): Promise<void>;
 }
 
 /** 月次締めの照会・保存。 */

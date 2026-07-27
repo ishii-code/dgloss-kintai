@@ -94,6 +94,17 @@ export class InMemoryWorkDayRepository implements WorkDayRepository {
       )
       .sort((a, b) => (a.date < b.date ? -1 : 1));
   }
+
+  async save(workDay: WorkDay): Promise<void> {
+    const idx = this.items.findIndex(
+      (w) => w.employeeId === workDay.employeeId && w.date === workDay.date,
+    );
+    if (idx >= 0) {
+      this.items[idx] = workDay;
+    } else {
+      this.items.push(workDay);
+    }
+  }
 }
 
 /** 月次締めの in-memory リポジトリ。 */

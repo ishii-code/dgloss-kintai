@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
-import type { RunClosingResult } from "@dgloss-kintai/api";
+import type { BuildDailyResult, RunClosingResult } from "@dgloss-kintai/api";
 
 import { AdminGuard } from "@/components/AdminGuard";
 import type { EmployeeSummary } from "@/lib/employeeSummary";
@@ -22,6 +22,28 @@ async function fetchEmployees(): Promise<readonly EmployeeSummary[]> {
   }
   const json = (await res.json()) as { employees: readonly EmployeeSummary[] };
   return json.employees;
+}
+
+async function buildDaily(input: {
+  year: number;
+  month: number;
+  employeeId?: string;
+}): Promise<BuildDailyResult> {
+  const res = await fetch("/api/admin/attendance-build", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) {
+    const body = (await res.json().catch(() => null)) as {
+      error?: { message?: string };
+    } | null;
+    throw new Error(
+      body?.error?.message ?? `日次化に失敗しました (HTTP ${res.status})`,
+    );
+  }
+  const json = (await res.json()) as { result: BuildDailyResult };
+  return json.result;
 }
 
 async function runClosing(input: {
@@ -53,6 +75,7 @@ function ClosingRunBody(): ReactNode {
   const [month, setMonth] = useState(init.month);
   const [target, setTarget] = useState<string>("__all__");
   const [result, setResult] = useState<RunClosingResult | null>(null);
+  const [daily, setDaily] = useState<BuildDailyResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -70,18 +93,36 @@ function ClosingRunBody(): ReactNode {
     return map;
   }, [employees]);
 
+  const targetInput = useCallback(
+    () => ({
+      year,
+      month,
+      ...(target !== "__all__" ? { employeeId: target } : {}),
+    }),
+    [year, month, target],
+  );
+
+  const handleBuildDaily = useCallback((): void => {
+    setBusy(true);
+    setError(null);
+    void (async () => {
+      try {
+        setDaily(await buildDaily(targetInput()));
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "日次化に失敗しました");
+        setDaily(null);
+      } finally {
+        setBusy(false);
+      }
+    })();
+  }, [targetInput]);
+
   const handleRun = useCallback((): void => {
     setBusy(true);
     setError(null);
     void (async () => {
       try {
-        setResult(
-          await runClosing({
-            year,
-            month,
-            ...(target !== "__all__" ? { employeeId: target } : {}),
-          }),
-        );
+        setResult(await runClosing(targetInput()));
       } catch (e) {
         setError(e instanceof Error ? e.message : "締め実行に失敗しました");
         setResult(null);
@@ -89,7 +130,7 @@ function ClosingRunBody(): ReactNode {
         setBusy(false);
       }
     })();
-  }, [year, month, target]);
+  }, [targetInput]);
 
   const years = [init.year - 1, init.year, init.year + 1];
   const months = Array.from({ length: 12 }, (_, i) => i + 1);
@@ -97,9 +138,9 @@ function ClosingRunBody(): ReactNode {
   return (
     <div className="flex flex-col gap-5">
       <div>
-        <h1 className="text-2xl font-bold text-neutral-900">月次締め実行</h1>
+        <h1 className="text-2xl font-bold text-neutral-900">勤怠の締め処理</h1>
         <p className="mt-1 text-sm text-neutral-500">
-          対象月の勤怠から割増・控除を算定し、月次締めを確定・保存します（給与明細・36協定に反映）。
+          ①打刻を日次勤怠へ変換し、②その勤怠から月次締め（割増・控除）を確定します。締め結果は給与明細・36協定に反映されます。
         </p>
       </div>
 
@@ -149,11 +190,19 @@ function ClosingRunBody(): ReactNode {
         </Field>
         <button
           type="button"
+          onClick={handleBuildDaily}
+          disabled={busy}
+          className="rounded-xl border-2 border-primary px-6 py-3 text-lg font-bold text-neutral-800 transition-opacity hover:bg-primary/10 disabled:opacity-50"
+        >
+          {busy ? "実行中…" : "① 打刻を日次化"}
+        </button>
+        <button
+          type="button"
           onClick={handleRun}
           disabled={busy}
           className="rounded-xl bg-primary px-6 py-3 text-lg font-bold text-primary-foreground shadow-sm transition-opacity hover:opacity-90 disabled:opacity-50"
         >
-          {busy ? "実行中…" : "締めを実行"}
+          {busy ? "実行中…" : "② 締めを実行"}
         </button>
       </section>
 
@@ -163,6 +212,18 @@ function ClosingRunBody(): ReactNode {
           className="rounded-2xl bg-red-50 px-4 py-3 text-center text-base font-medium text-red-700"
         >
           {error}
+        </div>
+      )}
+
+      {daily !== null && (
+        <div className="rounded-2xl bg-secondary/10 px-5 py-4 shadow-sm">
+          <p className="text-base font-bold text-neutral-900">
+            {daily.period.year}年{daily.period.month}月 の打刻を日次化しました
+          </p>
+          <p className="mt-1 text-sm text-neutral-600">
+            勤務日 {daily.builtCount} 件を生成（対象 {daily.employeesProcessed} 名・
+            うち勤務あり {daily.employeesWithWorkDays} 名）。続けて「② 締めを実行」してください。
+          </p>
         </div>
       )}
 
