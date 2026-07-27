@@ -21,6 +21,7 @@ import type {
   ShadowComparison,
   Stamp,
   StampId,
+  WorkCalendar,
   WorkDay,
   YearMonth,
 } from "@dgloss-kintai/contracts";
@@ -129,6 +130,14 @@ export interface RoleSettingsRepository {
   get(): Promise<RoleSettings | null>;
   /** ロール設定を保存する（シングルトンの upsert）。 */
   save(settings: RoleSettings): Promise<void>;
+}
+
+/** 勤務カレンダー（シングルトン）の永続化。 */
+export interface WorkCalendarRepository {
+  /** 保存済みの勤務カレンダーを返す。未保存なら null（呼び出し側が既定へフォールバック）。 */
+  get(): Promise<WorkCalendar | null>;
+  /** 勤務カレンダーを保存する（シングルトンの upsert）。 */
+  save(calendar: WorkCalendar): Promise<void>;
 }
 
 /** 時刻 port。テストでは固定時刻を注入できる。 */

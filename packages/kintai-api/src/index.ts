@@ -34,6 +34,7 @@ export type {
   ApprovalRequestRepository,
   CompanySettingsRepository,
   RoleSettingsRepository,
+  WorkCalendarRepository,
   IdGenerator,
   Clock,
 } from "./ports.js";
@@ -143,6 +144,13 @@ export type { GetRoleSettingsDeps } from "./getRoleSettings.js";
 export { updateRoleSettings } from "./updateRoleSettings.js";
 export type { UpdateRoleSettingsDeps } from "./updateRoleSettings.js";
 
+// 勤務カレンダー（Phase 4・管理者専用）
+export { getWorkCalendar, updateWorkCalendar } from "./workCalendar.js";
+export type {
+  GetWorkCalendarDeps,
+  UpdateWorkCalendarDeps,
+} from "./workCalendar.js";
+
 // 従業員管理ユースケース（Phase 2・管理者専用）
 export { createEmployee } from "./createEmployee.js";
 export type { CreateEmployeeDeps } from "./createEmployee.js";
@@ -197,6 +205,7 @@ export {
   InMemoryApprovalRequestRepository,
   InMemoryCompanySettingsRepository,
   InMemoryRoleSettingsRepository,
+  InMemoryWorkCalendarRepository,
   SequentialIdGenerator,
   FixedClock,
 } from "./inMemory.js";

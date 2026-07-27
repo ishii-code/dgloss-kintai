@@ -21,6 +21,7 @@ import {
   InMemoryMonthlyClosingRepository,
   InMemoryRoleSettingsRepository,
   InMemoryStampRepository,
+  InMemoryWorkCalendarRepository,
   InMemoryWorkDayRepository,
 } from "@dgloss-kintai/api";
 import type {
@@ -33,6 +34,7 @@ import type {
   MonthlyClosingRepository,
   RoleSettingsRepository,
   StampRepository,
+  WorkCalendarRepository,
   WorkDayRepository,
 } from "@dgloss-kintai/api";
 import type {
@@ -66,6 +68,7 @@ export interface ServerDeps {
   readonly approvals: ApprovalRequestRepository;
   readonly companySettings: CompanySettingsRepository;
   readonly roleSettings: RoleSettingsRepository;
+  readonly calendar: WorkCalendarRepository;
   readonly ids: IdGenerator;
   readonly clock: Clock;
 }
@@ -315,6 +318,7 @@ function buildInMemoryDeps(): ServerDeps {
     approvals: new InMemoryApprovalRequestRepository(createDemoApprovals()),
     companySettings: new InMemoryCompanySettingsRepository(),
     roleSettings: new InMemoryRoleSettingsRepository(),
+    calendar: new InMemoryWorkCalendarRepository(),
     ids: new RandomUuidIdGenerator(),
     clock: new SystemClock(),
   };
@@ -336,6 +340,7 @@ async function buildPrismaDeps(): Promise<ServerDeps> {
     approvals: new db.PrismaApprovalRequestRepository(prisma),
     companySettings: new db.PrismaCompanySettingsRepository(prisma),
     roleSettings: new db.PrismaRoleSettingsRepository(prisma),
+    calendar: new db.PrismaWorkCalendarRepository(prisma),
     ids: new RandomUuidIdGenerator(),
     clock: new SystemClock(),
   };

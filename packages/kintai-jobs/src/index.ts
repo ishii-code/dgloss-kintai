@@ -57,6 +57,9 @@ export {
 // 打刻 → 日次勤怠（WorkDay）。出退勤・休憩の打刻から区分別労働時間を復元する。
 export { buildWorkDaysFromStamps } from "./dailyAttendance.js";
 
+// 勤務カレンダー（休日区分の判定）。日次化で平日／法定休日／所定休日を振り分ける。
+export { resolveDayType, weekdayOf } from "./workCalendar.js";
+
 // 賞与明細（総支給まで）。基本給×支給月数×評価×按分。非正規は賞与なし（第72条）。
 export { buildBonusStatement } from "./bonusStatement.js";
 

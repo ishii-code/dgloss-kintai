@@ -106,11 +106,12 @@ describe("buildWorkDaysFromStamps", () => {
   });
 
   it("日跨ぎ＋長時間は法定外残業と深夜を両立して算定する（20:00-翌7:00・休憩1h）", () => {
+    // 2026-07-15 は水曜（平日）。日跨ぎでも出勤日基準で workday 判定。
     const stamps = [
-      stamp("clock_in", "2026-07-12", "20:00"),
-      stamp("break_start", "2026-07-13", "00:00"),
-      stamp("break_end", "2026-07-13", "01:00"),
-      stamp("clock_out", "2026-07-13", "07:00"),
+      stamp("clock_in", "2026-07-15", "20:00"),
+      stamp("break_start", "2026-07-16", "00:00"),
+      stamp("break_end", "2026-07-16", "01:00"),
+      stamp("clock_out", "2026-07-16", "07:00"),
     ];
     const [wd] = buildWorkDaysFromStamps(employee, stamps);
     // 拘束11h − 休憩1h = 実労働10h。
@@ -120,6 +121,45 @@ describe("buildWorkDaysFromStamps", () => {
     expect(wd?.classified.statutoryOvertimeMinutes).toBe(120);
     // 深夜: 22:00-24:00(2h) + 01:00-05:00(4h) = 6h（00:00-01:00は休憩で除外）。
     expect(wd?.classified.nightMinutes).toBe(360);
+  });
+
+  it("既定カレンダーで日曜出勤は法定休日労働になる", () => {
+    // 2026-07-05 は日曜（既定=法定休日）。
+    const stamps = [
+      stamp("clock_in", "2026-07-05", "09:00"),
+      stamp("clock_out", "2026-07-05", "17:00"),
+    ];
+    const [wd] = buildWorkDaysFromStamps(employee, stamps);
+    expect(wd?.dayType).toBe("legal_holiday");
+    expect(wd?.classified.legalHolidayMinutes).toBe(480); // 8h全て休日労働
+    expect(wd?.classified.statutoryOvertimeMinutes).toBe(0); // 休日は時間外分割しない
+  });
+
+  it("既定カレンダーで土曜出勤は所定休日労働になる", () => {
+    // 2026-07-04 は土曜（既定=所定休日）。
+    const stamps = [
+      stamp("clock_in", "2026-07-04", "09:00"),
+      stamp("clock_out", "2026-07-04", "17:00"),
+    ];
+    const [wd] = buildWorkDaysFromStamps(employee, stamps);
+    expect(wd?.dayType).toBe("scheduled_holiday");
+    expect(wd?.classified.scheduledHolidayMinutes).toBe(480);
+  });
+
+  it("会社休日カレンダーを渡すと平日でも休日労働になる", () => {
+    const calendar = {
+      legalHolidayWeekday: 0,
+      scheduledHolidayWeekdays: [6],
+      customHolidays: ["2026-07-01"],
+      updatedAt: "1970-01-01T00:00:00+09:00" as never,
+    };
+    const stamps = [
+      stamp("clock_in", "2026-07-01", "09:00"),
+      stamp("clock_out", "2026-07-01", "17:00"),
+    ];
+    const [wd] = buildWorkDaysFromStamps(employee, stamps, calendar);
+    expect(wd?.dayType).toBe("scheduled_holiday");
+    expect(wd?.classified.scheduledHolidayMinutes).toBe(480);
   });
 
   it("WorkDay の id は従業員×日付で決定的", () => {

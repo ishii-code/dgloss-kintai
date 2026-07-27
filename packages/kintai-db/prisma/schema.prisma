@@ -279,6 +279,19 @@ model CompanySettings {
   updatedAt            DateTime
 }
 
+/// 勤務カレンダー（休日区分の判定設定・シングルトン）。
+model WorkCalendar {
+  /// 固定 ID（シングルトン。常に "default"）。
+  id                       String   @id @default("default")
+  /// 法定休日の曜日（0=日〜6=土）。
+  legalHolidayWeekday      Int
+  /// 所定休日の曜日（0=日〜6=土・複数可）。
+  scheduledHolidayWeekdays Int[]
+  /// 個別の会社休日（`YYYY-MM-DD`・所定休日として扱う）。
+  customHolidays           String[]
+  updatedAt                DateTime
+}
+
 /// ロール設定（管理者社員番号の一覧・シングルトン）。
 model RoleSettings {
   /// 固定 ID（シングルトン。常に "default"）。

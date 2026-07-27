@@ -32,6 +32,10 @@ export {
   PrismaRoleSettingsRepository,
   roleSettingsRowToDomain,
 } from "./roleSettingsRepository.js";
+export {
+  PrismaWorkCalendarRepository,
+  workCalendarRowToDomain,
+} from "./workCalendarRepository.js";
 
 // マッパー（純粋関数）
 export {

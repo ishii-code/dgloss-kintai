@@ -276,6 +276,16 @@ export const MODULES: readonly KintaiModule[] = [
     requiredRole: "admin",
   },
   {
+    id: "settings-calendar",
+    label: "勤務カレンダー",
+    description: "法定休日・所定休日・会社休日を設定します（休日勤務の判定に反映）。",
+    icon: "📅",
+    path: "/settings/calendar",
+    status: "active",
+    category: "settings",
+    requiredRole: "admin",
+  },
+  {
     id: "settings-hr",
     label: "人事設定",
     description: "雇用区分・勤務体系・休暇区分などの人事マスタを設定します。",

@@ -20,6 +20,7 @@ import type {
   ShadowComparison,
   Stamp,
   StampId,
+  WorkCalendar,
   WorkDay,
   YearMonth,
 } from "@dgloss-kintai/contracts";
@@ -34,6 +35,7 @@ import type {
   RoleSettingsRepository,
   ShadowComparisonRepository,
   StampRepository,
+  WorkCalendarRepository,
   WorkDayRepository,
 } from "./ports.js";
 
@@ -294,6 +296,25 @@ export class InMemoryRoleSettingsRepository
 
   async save(settings: RoleSettings): Promise<void> {
     this.current = settings;
+  }
+}
+
+/** 勤務カレンダー（シングルトン）の in-memory リポジトリ。 */
+export class InMemoryWorkCalendarRepository
+  implements WorkCalendarRepository
+{
+  private current: WorkCalendar | null;
+
+  constructor(seed: WorkCalendar | null = null) {
+    this.current = seed;
+  }
+
+  async get(): Promise<WorkCalendar | null> {
+    return this.current;
+  }
+
+  async save(calendar: WorkCalendar): Promise<void> {
+    this.current = calendar;
   }
 }
 

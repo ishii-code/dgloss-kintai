@@ -77,6 +77,16 @@ export type {
 export { roleSettingsInputSchema } from "./roleSettings.js";
 
 export type {
+  WorkCalendar,
+  WorkCalendarInput,
+  WorkCalendarInputParsed,
+} from "./workCalendar.js";
+export {
+  workCalendarInputSchema,
+  DEFAULT_WORK_CALENDAR,
+} from "./workCalendar.js";
+
+export type {
   ApprovalRequest,
   ApprovalRequestInput,
   ApprovalRequestType,

@@ -64,6 +64,7 @@ export async function POST(req: Request): Promise<Response> {
     employees: deps.employees,
     stamps: deps.stamps,
     workDays: deps.workDays,
+    calendar: deps.calendar,
   });
   if (!result.ok) {
     return errorResponse(result.error);

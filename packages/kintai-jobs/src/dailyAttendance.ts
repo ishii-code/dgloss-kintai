@@ -22,9 +22,12 @@ import type {
   IsoDate,
   Minutes,
   Stamp,
+  WorkCalendar,
   WorkDay,
   WorkDayId,
 } from "@dgloss-kintai/contracts";
+import { DEFAULT_WORK_CALENDAR } from "@dgloss-kintai/contracts";
+import { resolveDayType } from "./workCalendar.js";
 
 /** 既定の所定労働時間（分・8h）。勤務カレンダー未実装のための暫定値。 */
 const DEFAULT_SCHEDULED_WORK_MINUTES = 480;
@@ -78,6 +81,7 @@ interface DayAccum {
 export function buildWorkDaysFromStamps(
   employee: Employee,
   stamps: readonly Stamp[],
+  calendar: WorkCalendar = DEFAULT_WORK_CALENDAR,
 ): WorkDay[] {
   // 対象打刻を時系列（絶対時刻）で整列する。
   const events = stamps
@@ -166,19 +170,24 @@ export function buildWorkDaysFromStamps(
     );
     if (workedMinutes <= 0) continue;
 
-    const classified = classifyDailyWork({
-      dayType: "workday",
-      intervals: accum.intervals,
-      scheduledWorkMinutes: DEFAULT_SCHEDULED_WORK_MINUTES,
-    });
+    // 勤務カレンダーで日区分（平日／法定休日／所定休日）を判定して分類する。
+    const dayType = resolveDayType(date, calendar);
+    const classified =
+      dayType === "workday"
+        ? classifyDailyWork({
+            dayType: "workday",
+            intervals: accum.intervals,
+            scheduledWorkMinutes: DEFAULT_SCHEDULED_WORK_MINUTES,
+          })
+        : classifyDailyWork({ dayType, intervals: accum.intervals });
 
     workDays.push({
       id: `wd_${employee.id}_${date}` as WorkDayId,
       employeeId: employee.id,
       date: date as IsoDate,
-      dayType: "workday",
-      scheduledStart: "09:00",
-      scheduledEnd: "18:00",
+      dayType,
+      scheduledStart: dayType === "workday" ? "09:00" : null,
+      scheduledEnd: dayType === "workday" ? "18:00" : null,
       actualWorkedMinutes: workedMinutes as Minutes,
       breakMinutes: accum.breakMinutes as Minutes,
       absenceMinutes: 0 as Minutes,

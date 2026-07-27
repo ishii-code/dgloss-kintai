@@ -9,7 +9,7 @@
  * 認可（管理者のみ）は呼び出し側（API ルートの checkAdmin）で担保する。
  */
 
-import { yearMonthSchema } from "@dgloss-kintai/contracts";
+import { DEFAULT_WORK_CALENDAR, yearMonthSchema } from "@dgloss-kintai/contracts";
 import type {
   Employee,
   EmployeeId,
@@ -21,6 +21,7 @@ import { z } from "zod";
 import type {
   EmployeeRepository,
   StampRepository,
+  WorkCalendarRepository,
   WorkDayRepository,
 } from "./ports.js";
 import {
@@ -42,6 +43,8 @@ export interface BuildDailyAttendanceDeps {
   readonly employees: EmployeeRepository;
   readonly stamps: StampRepository;
   readonly workDays: WorkDayRepository;
+  /** 勤務カレンダー（休日区分の判定）。未指定・未保存時は既定へフォールバック。 */
+  readonly calendar?: WorkCalendarRepository;
 }
 
 /** 日次化の結果サマリ。 */
@@ -99,6 +102,11 @@ export async function buildDailyAttendance(
     targets = await deps.employees.list();
   }
 
+  // 勤務カレンダー（休日区分の判定）を1回だけ解決する（未保存は既定）。
+  const calendar =
+    (deps.calendar !== undefined ? await deps.calendar.get() : null) ??
+    DEFAULT_WORK_CALENDAR;
+
   const { from, to } = monthRange(period);
   let builtCount = 0;
   let employeesWithWorkDays = 0;
@@ -109,7 +117,7 @@ export async function buildDailyAttendance(
       from,
       to,
     );
-    const workDays = buildWorkDaysFromStamps(employee, stamps);
+    const workDays = buildWorkDaysFromStamps(employee, stamps, calendar);
     if (workDays.length > 0) {
       employeesWithWorkDays += 1;
     }
