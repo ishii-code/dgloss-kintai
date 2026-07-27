@@ -263,6 +263,27 @@ async function main() {
     const rec = Array.isArray(j?.data) ? j.data[0] : Array.isArray(j?.result) ? j.result[0] : j?.data ?? j;
     console.log(JSON.stringify(shape(rec, 6), null, 2));
   }
+
+  // --- 6) v2 の 403 の「理由」を丸ごと表示（権限で何を有効化すべきか判断するため） ---
+  console.log("\n[6] v2 が 403 になる理由（応答本文・ヘッダ）:");
+  const dbgUrl = `${BASE}/v2/employees`;
+  const dbg = await fetch(dbgUrl, {
+    method: "GET",
+    headers: {
+      Accept: "application/json",
+      Authorization: `Bearer ${token}`,
+      "X-API-KEY": API_KEY,
+      ...(COMPANY ? { "Company-Code": COMPANY } : {}),
+    },
+  });
+  console.log(`    GET ${dbgUrl} → status ${dbg.status}`);
+  const hdrs = {};
+  for (const [k, v] of dbg.headers.entries()) {
+    if (/error|message|reason|auth|permission|rate|allow|www-/i.test(k)) hdrs[k] = v;
+  }
+  console.log("    関連ヘッダ:", JSON.stringify(hdrs));
+  const body = await dbg.text();
+  console.log("    応答本文:", body.slice(0, 800));
 }
 
 main().catch((e) => {
