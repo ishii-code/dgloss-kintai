@@ -114,6 +114,10 @@ export class InMemoryMonthlyClosingRepository
   ): Promise<MonthlyClosing | null> {
     return this.items.get(`${employeeId}|${periodKey(period)}`) ?? null;
   }
+
+  async save(closing: MonthlyClosing): Promise<void> {
+    this.items.set(`${closing.employeeId}|${periodKey(closing.period)}`, closing);
+  }
 }
 
 /** 従業員マスタの in-memory リポジトリ。 */

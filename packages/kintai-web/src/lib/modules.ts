@@ -133,6 +133,16 @@ export const MODULES: readonly KintaiModule[] = [
     showInNav: true,
     navSubLabel: "残日数",
   },
+  {
+    id: "closing-run",
+    label: "締め実行",
+    description: "対象月の勤怠から月次締めを算定・確定し、給与明細・36協定へ反映します。",
+    icon: "▶️",
+    path: "/closing-run",
+    status: "active",
+    category: "attendance",
+    requiredRole: "admin",
+  },
   // --- 人事・労務 -------------------------------------------------------
   {
     id: "employees",

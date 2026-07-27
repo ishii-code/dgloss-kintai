@@ -75,6 +75,11 @@ export { listWorkDays } from "./listWorkDays.js";
 export type { ListWorkDaysDeps } from "./listWorkDays.js";
 export { getMonthlyClosing } from "./getMonthlyClosing.js";
 export type { GetMonthlyClosingDeps } from "./getMonthlyClosing.js";
+export { runMonthlyClosingForPeriod } from "./runMonthlyClosingForPeriod.js";
+export type {
+  RunMonthlyClosingDeps,
+  RunClosingResult,
+} from "./runMonthlyClosingForPeriod.js";
 export { getShadowComparison } from "./getShadowComparison.js";
 export type { GetShadowComparisonDeps } from "./getShadowComparison.js";
 export { getPayslip } from "./getPayslip.js";

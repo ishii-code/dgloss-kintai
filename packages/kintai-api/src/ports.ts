@@ -47,13 +47,15 @@ export interface WorkDayRepository {
   ): Promise<readonly WorkDay[]>;
 }
 
-/** 月次締めの照会。 */
+/** 月次締めの照会・保存。 */
 export interface MonthlyClosingRepository {
   /** 従業員・年月で月次締めを取得する。なければ null。 */
   findByEmployeeAndPeriod(
     employeeId: EmployeeId,
     period: YearMonth,
   ): Promise<MonthlyClosing | null>;
+  /** 月次締めを保存する（従業員×年月で upsert・冪等）。締め実行で用いる。 */
+  save(closing: MonthlyClosing): Promise<void>;
 }
 
 /** 従業員マスタの照会・書き込み。 */
