@@ -64,6 +64,9 @@ importers:
         specifier: ^3.24.1
         version: 3.25.76
     devDependencies:
+      '@dgloss-kintai/db':
+        specifier: workspace:*
+        version: link:../kintai-db
       typescript:
         specifier: ^5.7.3
         version: 5.9.3
