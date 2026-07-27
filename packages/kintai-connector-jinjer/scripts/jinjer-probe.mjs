@@ -203,6 +203,62 @@ async function main() {
       }
     }
   }
+
+  // --- 5) 勤怠・給与・所属などの別エンドポイントを探索（statusと形だけ） ---
+  console.log("\n[5] 賃金・勤務条件・所属 の別エンドポイントを探索:");
+  const discover = [
+    "v1/groups",
+    "v1/departments",
+    "v1/employee_groups",
+    "v1/positions",
+    "v1/employment_data",
+    "v1/employments",
+    "v1/work_schedules",
+    "v1/work_systems",
+    "v1/shift_patterns",
+    "v1/salaries",
+    "v1/salary",
+    "v1/wages",
+    "v1/payrolls",
+    "v1/base_salaries",
+    "v1/allowances",
+    "v1/attendances",
+    "v1/daily_attendances",
+    "v1/monthly_attendances",
+    "v1/timecards",
+    "v1/employee_groups_data",
+  ];
+  const ok200 = [];
+  for (const p of discover) {
+    try {
+      const res = await fetch(`${BASE}/${p}`, {
+        method: "GET",
+        headers: {
+          Accept: "application/json",
+          Authorization: `Bearer ${token}`,
+          "X-API-KEY": API_KEY,
+          ...(COMPANY ? { "Company-Code": COMPANY } : {}),
+        },
+      });
+      const t = await res.text();
+      let j;
+      try {
+        j = JSON.parse(t);
+      } catch {
+        j = null;
+      }
+      const m = j?.errors?.[0]?.message ?? j?.errors?.[0]?.reason ?? "";
+      console.log(`    ${res.status}  /${p}${m ? "  … " + m : ""}`);
+      if (res.status === 200) ok200.push({ p, j });
+    } catch (e) {
+      console.log(`    ERR  /${p}  ${e?.message ?? e}`);
+    }
+  }
+  for (const { p, j } of ok200) {
+    console.log(`\n    ✅ 200 のエンドポイント /${p} の項目名（値は非表示）:`);
+    const rec = Array.isArray(j?.data) ? j.data[0] : Array.isArray(j?.result) ? j.result[0] : j?.data ?? j;
+    console.log(JSON.stringify(shape(rec, 6), null, 2));
+  }
 }
 
 main().catch((e) => {
