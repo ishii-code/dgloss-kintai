@@ -31,6 +31,7 @@ export type {
   EmployeeRepository,
   ShadowComparisonRepository,
   ImprovementRequestRepository,
+  ApprovalRequestRepository,
   IdGenerator,
   Clock,
 } from "./ports.js";
@@ -72,6 +73,16 @@ export { getShadowComparison } from "./getShadowComparison.js";
 export type { GetShadowComparisonDeps } from "./getShadowComparison.js";
 export { getPayslip } from "./getPayslip.js";
 export type { GetPayslipDeps } from "./getPayslip.js";
+
+// 承認ワークフロー（申請・承認）ユースケース（Phase 4）
+export { createApprovalRequest } from "./createApprovalRequest.js";
+export type { CreateApprovalRequestDeps } from "./createApprovalRequest.js";
+export { listApprovalRequests } from "./listApprovalRequests.js";
+export type { ListApprovalRequestsDeps } from "./listApprovalRequests.js";
+export { decideApprovalRequest } from "./decideApprovalRequest.js";
+export type { DecideApprovalRequestDeps } from "./decideApprovalRequest.js";
+export { cancelApprovalRequest } from "./cancelApprovalRequest.js";
+export type { CancelApprovalRequestDeps } from "./cancelApprovalRequest.js";
 
 // 従業員管理ユースケース（Phase 2・管理者専用）
 export { createEmployee } from "./createEmployee.js";
@@ -124,6 +135,7 @@ export {
   InMemoryEmployeeRepository,
   InMemoryShadowComparisonRepository,
   InMemoryImprovementRequestRepository,
+  InMemoryApprovalRequestRepository,
   SequentialIdGenerator,
   FixedClock,
 } from "./inMemory.js";

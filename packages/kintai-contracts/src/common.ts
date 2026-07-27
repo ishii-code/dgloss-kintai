@@ -21,6 +21,8 @@ export type WorkDayId = Brand<string, "WorkDayId">;
 export type MonthlyClosingId = Brand<string, "MonthlyClosingId">;
 /** 改善リクエスト ID。 */
 export type ImprovementRequestId = Brand<string, "ImprovementRequestId">;
+/** 承認申請 ID（ワークフロー）。 */
+export type ApprovalRequestId = Brand<string, "ApprovalRequestId">;
 
 /** `YYYY-MM-DD`（JST の暦日）。 */
 export type IsoDate = Brand<string, "IsoDate">;

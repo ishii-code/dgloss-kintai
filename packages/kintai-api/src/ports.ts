@@ -7,6 +7,8 @@
  */
 
 import type {
+  ApprovalRequest,
+  ApprovalRequestId,
   Employee,
   EmployeeId,
   ImprovementRequest,
@@ -85,6 +87,8 @@ export interface IdGenerator {
   improvementRequestId(): ImprovementRequestId;
   /** 新しい従業員 ID を採番する。 */
   employeeId(): EmployeeId;
+  /** 新しい承認申請 ID を採番する。 */
+  approvalRequestId(): ApprovalRequestId;
 }
 
 /** 改善リクエストの永続化。 */
@@ -93,6 +97,16 @@ export interface ImprovementRequestRepository {
   save(request: ImprovementRequest): Promise<void>;
   /** 全改善リクエストを新しい順で返す。 */
   list(): Promise<readonly ImprovementRequest[]>;
+}
+
+/** 承認申請（ワークフロー）の永続化。 */
+export interface ApprovalRequestRepository {
+  /** 承認申請を保存する（作成・決裁・取消いずれも upsert）。 */
+  save(request: ApprovalRequest): Promise<void>;
+  /** ID で承認申請を取得する。なければ null。 */
+  findById(id: ApprovalRequestId): Promise<ApprovalRequest | null>;
+  /** 全承認申請を新しい順で返す。 */
+  list(): Promise<readonly ApprovalRequest[]>;
 }
 
 /** 時刻 port。テストでは固定時刻を注入できる。 */

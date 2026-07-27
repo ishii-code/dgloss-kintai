@@ -14,6 +14,7 @@ import "server-only";
  */
 
 import {
+  InMemoryApprovalRequestRepository,
   InMemoryEmployeeRepository,
   InMemoryImprovementRequestRepository,
   InMemoryMonthlyClosingRepository,
@@ -21,6 +22,7 @@ import {
   InMemoryWorkDayRepository,
 } from "@dgloss-kintai/api";
 import type {
+  ApprovalRequestRepository,
   Clock,
   EmployeeRepository,
   IdGenerator,
@@ -30,6 +32,8 @@ import type {
   WorkDayRepository,
 } from "@dgloss-kintai/api";
 import type {
+  ApprovalRequest,
+  ApprovalRequestId,
   Employee,
   EmployeeId,
   ImprovementRequest,
@@ -55,6 +59,7 @@ export interface ServerDeps {
   readonly workDays: WorkDayRepository;
   readonly closings: MonthlyClosingRepository;
   readonly improvements: ImprovementRequestRepository;
+  readonly approvals: ApprovalRequestRepository;
   readonly ids: IdGenerator;
   readonly clock: Clock;
 }
@@ -69,6 +74,9 @@ class RandomUuidIdGenerator implements IdGenerator {
   }
   employeeId(): EmployeeId {
     return `emp_${crypto.randomUUID()}` as EmployeeId;
+  }
+  approvalRequestId(): ApprovalRequestId {
+    return `apr_${crypto.randomUUID()}` as ApprovalRequestId;
   }
 }
 
@@ -254,6 +262,40 @@ function createDemoImprovements(): readonly ImprovementRequest[] {
   ];
 }
 
+/** デモ用の承認申請を少量生成する（in-memory シード用）。 */
+function createDemoApprovals(): readonly ApprovalRequest[] {
+  return [
+    {
+      id: "apr_demo_1" as ApprovalRequestId,
+      type: "overtime",
+      applicantEmployeeId: DEMO_EMPLOYEE_ID,
+      targetDate: "2026-07-31" as IsoDate,
+      subject: "月末締め対応の残業",
+      detail: "月次締めの確認のため、19:00〜21:00 の残業を申請します。",
+      status: "pending",
+      decidedByEmployeeId: null,
+      decidedAt: null,
+      decisionComment: null,
+      createdAt: "2026-07-25T09:00:00+09:00" as IsoDateTime,
+      updatedAt: "2026-07-25T09:00:00+09:00" as IsoDateTime,
+    },
+    {
+      id: "apr_demo_2" as ApprovalRequestId,
+      type: "leave",
+      applicantEmployeeId: "emp_hanako" as EmployeeId,
+      targetDate: "2026-08-12" as IsoDate,
+      subject: "有給休暇（1日）",
+      detail: "私用のため 8/12 を有給で取得したく申請します。",
+      status: "approved",
+      decidedByEmployeeId: DEMO_EMPLOYEE_ID,
+      decidedAt: "2026-07-20T13:00:00+09:00" as IsoDateTime,
+      decisionComment: "確認しました。承認します。",
+      createdAt: "2026-07-18T11:00:00+09:00" as IsoDateTime,
+      updatedAt: "2026-07-20T13:00:00+09:00" as IsoDateTime,
+    },
+  ];
+}
+
 /** in-memory 実装（既定・デモデータシード済み）を組み立てる。 */
 function buildInMemoryDeps(): ServerDeps {
   return {
@@ -264,6 +306,7 @@ function buildInMemoryDeps(): ServerDeps {
     improvements: new InMemoryImprovementRequestRepository(
       createDemoImprovements(),
     ),
+    approvals: new InMemoryApprovalRequestRepository(createDemoApprovals()),
     ids: new RandomUuidIdGenerator(),
     clock: new SystemClock(),
   };
@@ -282,6 +325,7 @@ async function buildPrismaDeps(): Promise<ServerDeps> {
     workDays: new db.PrismaWorkDayRepository(prisma),
     closings: new db.PrismaMonthlyClosingRepository(prisma),
     improvements: new db.PrismaImprovementRequestRepository(prisma),
+    approvals: new db.PrismaApprovalRequestRepository(prisma),
     ids: new RandomUuidIdGenerator(),
     clock: new SystemClock(),
   };

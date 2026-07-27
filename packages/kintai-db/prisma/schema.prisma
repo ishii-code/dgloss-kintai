@@ -251,3 +251,42 @@ model ImprovementRequest {
   @@index([status])
   @@index([createdAt])
 }
+
+/// 承認申請の種別（ワークフロー）。
+enum ApprovalRequestType {
+  overtime
+  leave
+  stamp_correction
+}
+
+/// 承認申請のステータス（ワークフロー）。
+enum ApprovalRequestStatus {
+  pending
+  approved
+  rejected
+  cancelled
+}
+
+/// 承認申請（ワークフロー・申請/承認）。
+model ApprovalRequest {
+  id                  String                @id
+  type                ApprovalRequestType
+  applicantEmployeeId String
+  /// 対象日（残業日・休暇日等。任意）。
+  targetDate          DateTime?             @db.Date
+  subject             String
+  detail              String
+  status              ApprovalRequestStatus
+  /// 承認／却下した管理者（未決裁は null）。
+  decidedByEmployeeId String?
+  /// 決裁時刻（未決裁は null）。
+  decidedAt           DateTime?
+  /// 決裁コメント（任意）。
+  decisionComment     String?
+  createdAt           DateTime
+  updatedAt           DateTime
+
+  @@index([status])
+  @@index([applicantEmployeeId])
+  @@index([createdAt])
+}

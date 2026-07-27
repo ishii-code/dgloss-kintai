@@ -6,6 +6,8 @@
  */
 
 import type {
+  ApprovalRequest,
+  ApprovalRequestId,
   Employee,
   EmployeeId,
   ImprovementRequest,
@@ -20,6 +22,7 @@ import type {
   YearMonth,
 } from "@dgloss-kintai/contracts";
 import type {
+  ApprovalRequestRepository,
   Clock,
   EmployeeRepository,
   IdGenerator,
@@ -174,6 +177,11 @@ export class SequentialIdGenerator implements IdGenerator {
     this.counter += 1;
     return `${this.prefix}-emp-${this.counter}` as EmployeeId;
   }
+
+  approvalRequestId(): ApprovalRequestId {
+    this.counter += 1;
+    return `${this.prefix}-apr-${this.counter}` as ApprovalRequestId;
+  }
 }
 
 /** 改善リクエストの in-memory リポジトリ。 */
@@ -196,6 +204,36 @@ export class InMemoryImprovementRequestRepository
   }
 
   async list(): Promise<readonly ImprovementRequest[]> {
+    return [...this.items].sort((a, b) =>
+      a.createdAt < b.createdAt ? 1 : a.createdAt > b.createdAt ? -1 : 0,
+    );
+  }
+}
+
+/** 承認申請（ワークフロー）の in-memory リポジトリ。 */
+export class InMemoryApprovalRequestRepository
+  implements ApprovalRequestRepository
+{
+  private readonly items: ApprovalRequest[] = [];
+
+  constructor(seed: readonly ApprovalRequest[] = []) {
+    this.items.push(...seed);
+  }
+
+  async save(request: ApprovalRequest): Promise<void> {
+    const idx = this.items.findIndex((r) => r.id === request.id);
+    if (idx >= 0) {
+      this.items[idx] = request;
+    } else {
+      this.items.push(request);
+    }
+  }
+
+  async findById(id: ApprovalRequestId): Promise<ApprovalRequest | null> {
+    return this.items.find((r) => r.id === id) ?? null;
+  }
+
+  async list(): Promise<readonly ApprovalRequest[]> {
     return [...this.items].sort((a, b) =>
       a.createdAt < b.createdAt ? 1 : a.createdAt > b.createdAt ? -1 : 0,
     );

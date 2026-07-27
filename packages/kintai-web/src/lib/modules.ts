@@ -172,13 +172,13 @@ export const MODULES: readonly KintaiModule[] = [
   {
     id: "workflow",
     label: "ワークフロー",
-    description: "各種申請・承認フロー（残業・休暇・打刻修正）を管理します。",
+    description: "各種申請・承認フロー（残業・休暇・打刻修正）を申請・承認します。",
     icon: "🔁",
     path: "/workflow",
-    status: "soon",
+    status: "active",
     category: "hr",
-    requiredRole: "admin",
-    phase: 3,
+    requiredRole: "general",
+    showInNav: true,
   },
   // --- 給与 -------------------------------------------------------------
   {

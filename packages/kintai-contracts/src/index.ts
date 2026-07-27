@@ -12,6 +12,7 @@ export type {
   WorkDayId,
   MonthlyClosingId,
   ImprovementRequestId,
+  ApprovalRequestId,
   IsoDate,
   IsoDateTime,
   YearMonth,
@@ -50,6 +51,25 @@ export type {
 } from "./closing.js";
 
 export type { Payslip, PayslipLine } from "./payslip.js";
+
+export type {
+  ApprovalRequest,
+  ApprovalRequestInput,
+  ApprovalRequestType,
+  ApprovalRequestStatus,
+  ApprovalDecision,
+  ApprovalRequestInputParsed,
+  ApprovalDecisionInputParsed,
+  ApprovalCancelInputParsed,
+} from "./approval.js";
+export {
+  approvalRequestInputSchema,
+  approvalDecisionInputSchema,
+  approvalCancelInputSchema,
+  APPROVAL_REQUEST_TYPES,
+  APPROVAL_REQUEST_STATUSES,
+  APPROVAL_DECISIONS,
+} from "./approval.js";
 
 export type {
   DomainEvent,

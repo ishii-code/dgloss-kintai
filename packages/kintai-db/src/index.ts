@@ -20,6 +20,10 @@ export {
   PrismaImprovementRequestRepository,
   improvementRequestRowToDomain,
 } from "./improvementRequestRepository.js";
+export {
+  PrismaApprovalRequestRepository,
+  approvalRequestRowToDomain,
+} from "./approvalRequestRepository.js";
 
 // マッパー（純粋関数）
 export {
