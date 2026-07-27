@@ -6,6 +6,7 @@
 import type { IsoDateTime, RoleSettings } from "@dgloss-kintai/contracts";
 import type { PrismaClient } from "@prisma/client";
 import { dateToIsoDateTime, isoDateTimeToDate } from "./mappers.js";
+import { isMissingTableError } from "./errors.js";
 
 /** シングルトンの固定 ID。 */
 const SINGLETON_ID = "default";
@@ -32,12 +33,23 @@ export function roleSettingsRowToDomain(row: RoleSettingsRow): RoleSettings {
 export class PrismaRoleSettingsRepository {
   constructor(private readonly prisma: PrismaClient) {}
 
-  /** 保存済みのロール設定を返す。未保存なら null。 */
+  /**
+   * 保存済みのロール設定を返す。未保存なら null。
+   * マイグレーション未適用（テーブル無し）でもログイン・認可が壊れないよう、
+   * その場合は null を返して呼び出し側の env/既定フォールバックに委ねる。
+   */
   async get(): Promise<RoleSettings | null> {
-    const row = await this.prisma.roleSettings.findUnique({
-      where: { id: SINGLETON_ID },
-    });
-    return row === null ? null : roleSettingsRowToDomain(row);
+    try {
+      const row = await this.prisma.roleSettings.findUnique({
+        where: { id: SINGLETON_ID },
+      });
+      return row === null ? null : roleSettingsRowToDomain(row);
+    } catch (error) {
+      if (isMissingTableError(error)) {
+        return null;
+      }
+      throw error;
+    }
   }
 
   /** ロール設定を保存する（シングルトンの upsert）。 */

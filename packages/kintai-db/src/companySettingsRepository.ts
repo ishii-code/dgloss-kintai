@@ -6,6 +6,7 @@
 import type { CompanySettings, IsoDateTime } from "@dgloss-kintai/contracts";
 import type { PrismaClient } from "@prisma/client";
 import { dateToIsoDateTime, isoDateTimeToDate } from "./mappers.js";
+import { isMissingTableError } from "./errors.js";
 
 /** シングルトンの固定 ID。 */
 const SINGLETON_ID = "default";
@@ -40,12 +41,23 @@ export function companySettingsRowToDomain(
 export class PrismaCompanySettingsRepository {
   constructor(private readonly prisma: PrismaClient) {}
 
-  /** 保存済みの企業設定を返す。未保存なら null。 */
+  /**
+   * 保存済みの企業設定を返す。未保存なら null。
+   * マイグレーション未適用（テーブル無し）でも画面が壊れないよう、その場合は
+   * null を返して呼び出し側の既定フォールバックに委ねる。
+   */
   async get(): Promise<CompanySettings | null> {
-    const row = await this.prisma.companySettings.findUnique({
-      where: { id: SINGLETON_ID },
-    });
-    return row === null ? null : companySettingsRowToDomain(row);
+    try {
+      const row = await this.prisma.companySettings.findUnique({
+        where: { id: SINGLETON_ID },
+      });
+      return row === null ? null : companySettingsRowToDomain(row);
+    } catch (error) {
+      if (isMissingTableError(error)) {
+        return null;
+      }
+      throw error;
+    }
   }
 
   /** 企業設定を保存する（シングルトンの upsert）。 */
