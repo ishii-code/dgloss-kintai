@@ -211,26 +211,23 @@ async function main() {
     .split(",")
     .map((s) => s.trim().replace(/^\/+/, ""))
     .filter(Boolean);
-  // 403（存在するが権限なし）を洗い出すため v2 中心に探索する。
+  // 給与管理者権限の付与後、v1 の給与・勤怠・雇用情報を再確認する（権限で200に変わる可能性）。
   const discover = [
     ...extra,
-    // v2: 既に 403 を確認済み（＝存在する）
-    "v2/employees", "v2/salaries",
-    // v2: 給与・手当
-    "v2/salary", "v2/payrolls", "v2/payroll", "v2/wages", "v2/allowances",
-    "v2/base_salaries", "v2/employee_salaries", "v2/compensations",
-    // v2: 雇用情報・勤務条件
-    "v2/employments", "v2/employment", "v2/employee_employments",
-    "v2/work_systems", "v2/work_types", "v2/working_styles",
-    "v2/scheduled_working_hours", "v2/fixed_overtimes", "v2/overtime",
-    // v2: 勤怠（日次・月次）
-    "v2/attendances", "v2/daily_attendances", "v2/monthly_attendances",
-    "v2/work_records", "v2/attendance_records", "v2/monthly_closings",
-    "v2/timecards",
-    // v2: 所属・役職
-    "v2/departments", "v2/groups", "v2/positions", "v2/job_titles",
-    // 比較用（v1 は存在しないはず）
-    "v1/salaries",
+    // 給与・手当
+    "v1/salaries", "v1/salary", "v1/base_salaries", "v1/basic_salaries",
+    "v1/employee_salaries", "v1/salary_data", "v1/salary_items", "v1/salary_details",
+    "v1/wages", "v1/payrolls", "v1/payroll", "v1/allowances", "v1/compensations",
+    "v1/monthly_salaries", "v1/employee_payments",
+    // 雇用情報・勤務条件（勤務体系・所定・固定残業・管理監督者）
+    "v1/employments", "v1/employment", "v1/employee_employments",
+    "v1/employment_information", "v1/employee_employment_information",
+    "v1/work_systems", "v1/work_types", "v1/working_conditions",
+    "v1/scheduled_working_hours", "v1/fixed_overtimes",
+    // 勤怠（日次・月次）
+    "v1/attendances", "v1/daily_attendances", "v1/monthly_attendances",
+    "v1/work_records", "v1/attendance_records", "v1/monthly_closings",
+    "v1/timecards", "v1/work_data",
   ];
   const ok200 = [];
   for (const p of discover) {
