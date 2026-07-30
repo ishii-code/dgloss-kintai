@@ -14,9 +14,12 @@ import { writeFileSync } from "node:fs";
 
 const BASE = (process.env.JINJER_BASE_URL || "https://api.jinjer.biz").replace(/\/+$/, "");
 const API_KEY = process.env.JINJER_API_KEY || "";
-const SECRET_KEY = process.env.JINJER_SECRET_KEY || "";
+// 環境変数名の揺れに両対応（引き継ぎメモより）。
+const SECRET_KEY = process.env.JINJER_SECRET_KEY || process.env.JINJER_API_SECRET || "";
 const COMPANY = process.env.JINJER_COMPANY_CODE || "";
 const OUT = process.env.JINJER_CSV_OUT || "jinjer-employees.csv";
+
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 if (!API_KEY || !SECRET_KEY) {
   console.error("JINJER_API_KEY / JINJER_SECRET_KEY が未設定です。");
@@ -65,19 +68,51 @@ async function getToken() {
   return t;
 }
 
+/** 200でも非JSONが返ることがある（引き継ぎメモ）。リトライ付きでJSONを取得する。 */
+async function getJsonWithRetry(url, token, tries = 5) {
+  let lastErr;
+  for (let i = 0; i < tries; i += 1) {
+    try {
+      const res = await fetch(url, {
+        method: "GET",
+        headers: {
+          Accept: "application/json",
+          Authorization: `Bearer ${token}`,
+          "X-API-KEY": API_KEY,
+          ...(COMPANY ? { "Company-Code": COMPANY } : {}),
+        },
+      });
+      const text = await res.text();
+      if (res.status >= 500 || res.status === 429) {
+        throw new Error(`HTTP ${res.status}`);
+      }
+      if (!res.ok) throw new Error(`HTTP ${res.status}: ${text.slice(0, 200)}`);
+      try {
+        return JSON.parse(text);
+      } catch {
+        // 200なのに非JSON（例 'Access Denied' 等）→ リトライ対象。
+        throw new Error(`非JSON応答: ${text.slice(0, 80)}`);
+      }
+    } catch (e) {
+      lastErr = e;
+      await sleep(500 * (i + 1));
+    }
+  }
+  throw lastErr;
+}
+
+/** 全ページ取得（limit不可・pageのみ／引き継ぎメモ）。1ページ=100件想定。 */
 async function fetchEmployees(token) {
-  const res = await fetch(`${BASE}/v1/employees`, {
-    method: "GET",
-    headers: {
-      Accept: "application/json",
-      Authorization: `Bearer ${token}`,
-      "X-API-KEY": API_KEY,
-      ...(COMPANY ? { "Company-Code": COMPANY } : {}),
-    },
-  });
-  if (!res.ok) throw new Error(`従業員取得 ${res.status}: ${await res.text()}`);
-  const j = await res.json();
-  return Array.isArray(j?.data) ? j.data : [];
+  const all = [];
+  const MAX_PAGES = 200;
+  for (let page = 1; page <= MAX_PAGES; page += 1) {
+    const j = await getJsonWithRetry(`${BASE}/v1/employees?page=${page}`, token);
+    const arr = Array.isArray(j?.data) ? j.data : [];
+    all.push(...arr);
+    process.stdout.write(`  page ${page}: ${arr.length}件（累計 ${all.length}）\n`);
+    if (arr.length < 100) break; // 最終ページ
+  }
+  return all;
 }
 
 /** 従業員1件 → CSV行（16列）。名簿はjinjer由来、賃金・勤務条件は既定値。 */
@@ -88,9 +123,9 @@ function toRow(e) {
   const first = c.first_name || p.first_name || "";
   const name = `${last} ${first}`.trim();
   return [
-    e.id ?? "",                                   // 社員番号
-    name,                                          // 氏名
-    c.email || p.email || "",                      // メール
+    e.id ?? "",                                   // 社員番号（トップレベルid）
+    name,                                          // 氏名（company の入れ子）
+    c.email || "",                                 // メール（会社メールのみ・私用は使わない）
     ymd(c.joined_on),                              // 入社日
     ymd(c.retirement_date),                        // 退職日
     empType(c.employment_classification?.name),    // 雇用区分（jinjer由来）
