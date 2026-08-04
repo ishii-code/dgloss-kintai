@@ -8,7 +8,9 @@
  *
  * マッピング方針:
  *   - 基本給・固定残業・氏名・入社日・退職日・雇用区分 … jinjer の実データ
- *   - 管理監督者 … 安全側で「いいえ」既定（法的判断が必要なため）。実際の管理監督者は取込後に手修正
+ *   - 管理監督者 … jinjer の役職（affiliations の employee_post）から自動判定。MGR（マネージャー/課長）
+ *     ライン以上を「はい」にする。判定は実行時に一覧表示するので目視確認でき、環境変数
+ *     JINJER_MANAGER_MIN_RANK / JINJER_MANAGER_ROLES で補正して再実行できる
  *   - 勤務体系・所属 … API に明確な項目が無く既定（固定時間制／本社）。必要に応じ編集
  *
  * 環境変数: JINJER_BASE_URL/API_KEY/SECRET_KEY(またはAPI_SECRET)/COMPANY_CODE
@@ -97,6 +99,42 @@ function pickAff(rec) {
   return { dept: String(latest.department?.name || ""), post: String(latest.employee_post?.name || "") };
 }
 
+/**
+ * 役職名 → 階層ランク（大きいほど上位）。MGR（マネージャー/課長）ラインを既定の下限として、
+ * それ以上の役職者を「管理監督者」に自動設定する。英日・全角半角を緩く判定。
+ */
+const ROLE_RANKS = [
+  { rank: 10, kw: ["取締役", "代表", "会長", "社長", "執行役員", "役員", "CEO", "COO", "CFO", "CTO", "CxO"] },
+  { rank: 9, kw: ["本部長", "事業部長", "ディビジョン長"] },
+  { rank: 8, kw: ["部長", "ディレクター", "Director"] },
+  { rank: 7, kw: ["次長", "副部長"] },
+  // ↓ MGR ライン（管理監督者の下限・既定 rank 6）
+  { rank: 6, kw: ["課長", "マネージャー", "マネジャー", "ﾏﾈｰｼﾞｬｰ", "MGR", "Manager", "GM", "室長", "所長", "支店長", "店長", "センター長", "拠点長"] },
+  { rank: 5, kw: ["係長", "主任", "リーダー", "ﾘｰﾀﾞｰ", "Leader", "LD", "SV", "スーパーバイザー", "チーフ", "Chief", "班長"] },
+  { rank: 1, kw: ["一般", "メンバー", "スタッフ", "担当", "アルバイト", "パート"] },
+];
+const MANAGER_MIN_RANK = Number(process.env.JINJER_MANAGER_MIN_RANK || 6);
+// 明示指定があれば、その語を含む役職だけを管理監督者にする（キーワード判定より優先）。
+const MANAGER_ROLES = (process.env.JINJER_MANAGER_ROLES || "").split(",").map((s) => s.trim()).filter(Boolean);
+
+/** 役職名を階層ランクに変換（該当なしは 0）。 */
+function roleRank(post) {
+  const s = String(post || "").toUpperCase();
+  if (!s) return 0;
+  for (const { rank, kw } of ROLE_RANKS) {
+    if (kw.some((k) => s.includes(k.toUpperCase()))) return rank;
+  }
+  return 0;
+}
+
+/** その役職が管理監督者か（MGRライン以上、または明示指定に一致）。 */
+function isManagerPost(post) {
+  const s = String(post || "");
+  if (!s) return false;
+  if (MANAGER_ROLES.length) return MANAGER_ROLES.some((k) => s.includes(k));
+  return roleRank(s) >= MANAGER_MIN_RANK;
+}
+
 async function main() {
   console.log("jinjer から取得します…");
   const tok = await token();
@@ -108,6 +146,8 @@ async function main() {
   const affById = new Map(affiliations.map((r) => [String(r.employee_id), r]));
 
   let withBase = 0;
+  let managerCount = 0;
+  const postStat = new Map(); // 役職名 → { count, manager }（判定確認用）
   const lines = [HEADERS.map(esc).join(",")];
   for (const e of employees) {
     const c = e.company ?? {};
@@ -115,6 +155,12 @@ async function main() {
     const name = `${c.last_name || p.last_name || ""} ${c.first_name || p.first_name || ""}`.trim();
     const { base, fixedOt, cls } = pickSalary(salById.get(String(e.id)));
     if (base > 0) withBase += 1;
+    const { post } = pickAff(affById.get(String(e.id)));
+    const manager = isManagerPost(post);
+    if (manager) managerCount += 1;
+    const stat = postStat.get(post) || { count: 0, manager };
+    stat.count += 1;
+    postStat.set(post, stat);
     const workSystem = cls === "時給" ? "シフト制" : "固定時間制"; // 既定・要確認
     const hasFixedOt = fixedOt > 0;
     const row = [
@@ -126,7 +172,7 @@ async function main() {
       empType(c.employment_classification?.name),
       workSystem,
       "本社",                                  // 所属（既定・要確認）
-      "いいえ",                                // 管理監督者（安全側の既定・要手修正）
+      manager ? "はい" : "いいえ",             // 管理監督者（jinjer役職から自動判定：MGR以上）
       String(base),                            // 基本給（jinjer実データ）
       "1900",                                  // 年間所定労働時間（既定）
       String(fixedOt),                         // 固定残業手当（jinjer実データ）
@@ -137,10 +183,20 @@ async function main() {
   }
   writeFileSync(OUT, "﻿" + lines.join("\r\n"), "utf8");
 
-  console.log(`\n✅ ${OUT} に ${employees.length} 名を書き出しました（基本給ありは ${withBase} 名）。`);
+  // --- 役職→管理監督者の自動判定（確認用）。ズレていたら環境変数で補正して再実行できる。 ---
+  console.log(`\n役職→管理監督者の自動判定（MGRライン以上=管理監督者・確認用）:`);
+  const sorted = [...postStat.entries()].sort((a, b) => b[1].count - a[1].count);
+  for (const [post, s] of sorted) {
+    console.log(`  ${s.manager ? "○ 管理監督者" : "・ 一般      "}  ${post || "(役職なし)"}  … ${s.count}名`);
+  }
+
+  console.log(`\n✅ ${OUT} に ${employees.length} 名を書き出しました（基本給ありは ${withBase} 名 / 管理監督者は ${managerCount} 名）。`);
   console.log("次の手順:");
-  console.log("  1) " + OUT + " を開いて内容を確認（基本給・固定残業はjinjer由来）");
-  console.log("  2) 『管理監督者』を実際の該当者だけ『はい』に、必要なら『勤務体系』『所属』を調整");
+  console.log("  1) 上の『役職→管理監督者』の一覧を確認（○の役職だけ『はい』になっています）");
+  console.log("     - 判定を直したい場合の再実行例:");
+  console.log('       ・下限を課長級より上に上げる: JINJER_MANAGER_MIN_RANK=8 node .../export-jinjer-full-csv.mjs');
+  console.log('       ・役職名を明示指定する:        JINJER_MANAGER_ROLES="課長,部長,本部長,役員" node .../export-jinjer-full-csv.mjs');
+  console.log("  2) " + OUT + " を開いて内容を確認（基本給・固定残業・管理監督者はjinjer由来）");
   console.log("  3) アプリの『インポート』画面にアップロード（社員番号キーで冪等）");
   console.log("  ※ このCSVには給与額が含まれます。取り扱いにご注意ください（私に貼らないでください）。");
 }
