@@ -255,6 +255,11 @@ describe("Employee マッパー", () => {
     expect(employeeRowToDomain(employeeToRow(retired))).toEqual(retired);
   });
 
+  it("事業部（department）ありでも往復する", () => {
+    const withDept: Employee = { ...employee, department: "パートナー事業部" };
+    expect(employeeRowToDomain(employeeToRow(withDept))).toEqual(withDept);
+  });
+
   it("row（契約 include）→ domain で読める", () => {
     const contractRow: EmploymentContractRow = {
       id: "emp-9",

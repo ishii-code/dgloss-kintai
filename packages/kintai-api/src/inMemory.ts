@@ -29,9 +29,13 @@ import type {
   Clock,
   CompanySettingsRepository,
   EmployeeRepository,
+  FixedOvertimeAlert,
   IdGenerator,
   ImprovementRequestRepository,
   MonthlyClosingRepository,
+  OvertimeAlertNotifier,
+  OvertimeAlertRecord,
+  OvertimeAlertStateRepository,
   RoleSettingsRepository,
   ShadowComparisonRepository,
   StampRepository,
@@ -324,5 +328,36 @@ export class FixedClock implements Clock {
 
   now(): IsoDateTime {
     return this.fixed;
+  }
+}
+
+/** 固定残業超過アラートの通知済み状態（in-memory）。従業員×年月で1回。 */
+export class InMemoryOvertimeAlertStateRepository
+  implements OvertimeAlertStateRepository
+{
+  private readonly notified = new Map<string, OvertimeAlertRecord>();
+
+  private key(employeeId: EmployeeId, period: YearMonth): string {
+    return `${employeeId}:${periodKey(period)}`;
+  }
+
+  async wasNotified(
+    employeeId: EmployeeId,
+    period: YearMonth,
+  ): Promise<boolean> {
+    return this.notified.has(this.key(employeeId, period));
+  }
+
+  async markNotified(record: OvertimeAlertRecord): Promise<void> {
+    this.notified.set(this.key(record.employeeId, record.period), record);
+  }
+}
+
+/** 送信内容を配列に貯めるだけの通知器（テスト・ドライラン用）。 */
+export class CollectingOvertimeAlertNotifier implements OvertimeAlertNotifier {
+  readonly sent: FixedOvertimeAlert[] = [];
+
+  async notify(alerts: readonly FixedOvertimeAlert[]): Promise<void> {
+    this.sent.push(...alerts);
   }
 }

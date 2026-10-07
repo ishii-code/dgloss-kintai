@@ -32,6 +32,7 @@ export const EMPLOYEE_CSV_HEADERS = [
   "充当_60時間超",
   "充当_休日",
   "充当_深夜",
+  "事業部",
 ] as const;
 
 /** 雇用区分 enum → 日本語ラベル。 */
@@ -114,6 +115,7 @@ export function employeeToCsvFields(employee: Employee): readonly string[] {
     BOOL_LABEL[c.fixedOvertimeCoverage.overtimeOver60 ? "true" : "false"],
     BOOL_LABEL[c.fixedOvertimeCoverage.holiday ? "true" : "false"],
     BOOL_LABEL[c.fixedOvertimeCoverage.night ? "true" : "false"],
+    employee.department ?? "",
   ];
 }
 
@@ -203,13 +205,18 @@ export function parseCsv(text: string): readonly (readonly string[])[] {
   return rows.filter((r) => !(r.length === 1 && r[0] === ""));
 }
 
-/** ヘッダ行が期待どおりか検証する。不一致なら不足・相違を説明するメッセージを返す。 */
+/**
+ * ヘッダ行が期待どおりか検証する。不一致なら不足・相違を説明するメッセージを返す。
+ * 末尾の「事業部」列は後方互換のため任意（旧 16 列 CSV も受け付ける）。
+ */
 export function validateCsvHeader(header: readonly string[]): string | null {
   const expected = EMPLOYEE_CSV_HEADERS;
-  if (header.length !== expected.length) {
-    return `列数が一致しません（期待 ${expected.length} 列・実際 ${header.length} 列）`;
+  // 事業部を含む全列（17）／事業部を省いた旧形式（16）のどちらかを許容する。
+  const required = expected.length - 1; // 事業部を除いた必須列数
+  if (header.length !== expected.length && header.length !== required) {
+    return `列数が一致しません（期待 ${required} または ${expected.length} 列・実際 ${header.length} 列）`;
   }
-  for (let i = 0; i < expected.length; i += 1) {
+  for (let i = 0; i < header.length; i += 1) {
     if (header[i]?.trim() !== expected[i]) {
       return `${i + 1} 列目の見出しが不正です（期待「${expected[i]}」・実際「${header[i] ?? ""}」）`;
     }
@@ -228,6 +235,7 @@ export function csvFieldsToRawInput(fields: readonly string[]): unknown {
     email: emptyToUndef(at(2)),
     hiredOn: at(3),
     retiredOn: emptyToUndef(at(4)),
+    department: emptyToUndef(at(16)),
     contract: {
       // 未知ラベルは生値のまま渡し、zod の enum 検証でエラーにする。
       employmentType: EMPLOYMENT_TYPE_BY_LABEL[at(5)] ?? at(5),

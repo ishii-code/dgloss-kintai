@@ -36,6 +36,7 @@ export {
   PrismaWorkCalendarRepository,
   workCalendarRowToDomain,
 } from "./workCalendarRepository.js";
+export { PrismaOvertimeAlertStateRepository } from "./overtimeAlertRepository.js";
 
 // マッパー（純粋関数）
 export {

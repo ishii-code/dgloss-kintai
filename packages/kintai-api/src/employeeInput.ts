@@ -29,6 +29,8 @@ export const employeeInputSchema = z.object({
   email: z.string().email("メールの形式が不正です").nullish(),
   hiredOn: isoDateSchema,
   retiredOn: isoDateSchema.nullish(),
+  /** 事業部（jinjer の部署名。通知の絞り込み等に用いる組織ラベル）。任意。 */
+  department: z.string().nullish(),
   contract: employmentContractSchema,
 });
 

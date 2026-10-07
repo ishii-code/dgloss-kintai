@@ -95,6 +95,8 @@ model Employee {
   hiredOn      DateTime  @db.Date
   /// 退職日（在籍中は null）。
   retiredOn    DateTime? @db.Date
+  /// 事業部（jinjer 部署名。通知の絞り込み等に用いる組織ラベル）。
+  department   String?
 
   /// 雇用契約（1-1）。
   contract EmploymentContract?
@@ -323,4 +325,22 @@ model ApprovalRequest {
   @@index([status])
   @@index([applicantEmployeeId])
   @@index([createdAt])
+}
+
+/// 固定残業超過アラートの通知済み記録（従業員×年月で1回だけ通知するための冪等キー）。
+model OvertimeAlert {
+  /// `${employeeId}:${year}-${MM}`。
+  id                 String   @id
+  employeeId         String
+  /// 対象年。
+  periodYear         Int
+  /// 対象月（1-12）。
+  periodMonth        Int
+  /// 通知時点の超過額（差額支給・円）。
+  additionalPayment  Int
+  /// 通知時刻。
+  notifiedAt         DateTime
+
+  @@unique([employeeId, periodYear, periodMonth])
+  @@index([periodYear, periodMonth])
 }

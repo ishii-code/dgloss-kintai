@@ -145,3 +145,52 @@ export interface Clock {
   /** 現在時刻（JST・RFC3339）を返す。 */
   now(): IsoDateTime;
 }
+
+/**
+ * 固定残業超過アラートの通知済み状態（従業員×年月で1回だけ通知するための冪等キー）。
+ * 月内で一度「超過」を通知したら、同月の以降の実行では再通知しない。
+ */
+export interface OvertimeAlertStateRepository {
+  /** 当該従業員・年月について既に超過通知済みかを返す。 */
+  wasNotified(employeeId: EmployeeId, period: YearMonth): Promise<boolean>;
+  /** 当該従業員・年月を通知済みとして記録する（冪等）。 */
+  markNotified(record: OvertimeAlertRecord): Promise<void>;
+}
+
+/** 通知済みとして記録する固定残業超過アラート（最小限）。 */
+export interface OvertimeAlertRecord {
+  readonly employeeId: EmployeeId;
+  readonly period: YearMonth;
+  /** 通知時点の超過額（差額支給・円）。 */
+  readonly additionalPayment: number;
+  /** 通知時刻（RFC3339）。 */
+  readonly notifiedAt: IsoDateTime;
+}
+
+/**
+ * 固定残業超過アラートの送信先（Google チャット等）。
+ * 送信失敗は呼び出し側で握りつぶさず例外伝播してよい（通知済み記録の前に送るため）。
+ */
+export interface OvertimeAlertNotifier {
+  /** 1件以上の超過アラートをまとめて通知する。 */
+  notify(alerts: readonly FixedOvertimeAlert[]): Promise<void>;
+}
+
+/** 固定残業を超過した従業員1名分の通知内容（当月見込み・確定共通）。 */
+export interface FixedOvertimeAlert {
+  readonly employeeId: EmployeeId;
+  readonly employeeCode: string;
+  readonly name: string;
+  /** 事業部（未設定なら null）。 */
+  readonly department: string | null;
+  /** 対象年月。 */
+  readonly period: YearMonth;
+  /** 集計の基準日（当月1日〜この日までの見込み）。 */
+  readonly asOf: IsoDate;
+  /** 固定時間外勤務手当の月額（円）。 */
+  readonly fixedOvertimeAllowance: number;
+  /** 当月の時間外相当の労働時間（分・法定内外の時間外合計）。 */
+  readonly overtimeMinutes: number;
+  /** 固定残業を超えて発生した差額支給（円・> 0）。 */
+  readonly additionalPayment: number;
+}

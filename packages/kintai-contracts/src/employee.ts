@@ -49,5 +49,11 @@ export interface Employee {
   readonly hiredOn: string;
   /** 退職日（在籍中は null）。 */
   readonly retiredOn: string | null;
+  /**
+   * 事業部（jinjer の部署名をそのまま保持する組織ラベル）。
+   * 賃金計算には用いず、通知の宛先絞り込み等の運用に使う。未設定は null。
+   * （勤務ルール上の所属区分は contract.office を参照すること。）
+   */
+  readonly department?: string | null;
   readonly contract: EmploymentContract;
 }

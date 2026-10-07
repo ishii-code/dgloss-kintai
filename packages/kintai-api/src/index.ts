@@ -37,6 +37,10 @@ export type {
   WorkCalendarRepository,
   IdGenerator,
   Clock,
+  OvertimeAlertStateRepository,
+  OvertimeAlertRecord,
+  OvertimeAlertNotifier,
+  FixedOvertimeAlert,
 } from "./ports.js";
 
 // 照会クエリスキーマ
@@ -86,6 +90,11 @@ export type {
   RunMonthlyClosingDeps,
   RunClosingResult,
 } from "./runMonthlyClosingForPeriod.js";
+export { checkFixedOvertimeAlerts } from "./checkFixedOvertimeAlerts.js";
+export type {
+  CheckFixedOvertimeAlertsDeps,
+  CheckFixedOvertimeAlertsResult,
+} from "./checkFixedOvertimeAlerts.js";
 export { getShadowComparison } from "./getShadowComparison.js";
 export type { GetShadowComparisonDeps } from "./getShadowComparison.js";
 export { getPayslip } from "./getPayslip.js";
@@ -206,6 +215,8 @@ export {
   InMemoryCompanySettingsRepository,
   InMemoryRoleSettingsRepository,
   InMemoryWorkCalendarRepository,
+  InMemoryOvertimeAlertStateRepository,
+  CollectingOvertimeAlertNotifier,
   SequentialIdGenerator,
   FixedClock,
 } from "./inMemory.js";

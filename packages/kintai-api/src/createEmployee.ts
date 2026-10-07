@@ -55,6 +55,9 @@ export async function createEmployee(
     email: parsed.data.email ?? null,
     hiredOn: parsed.data.hiredOn,
     retiredOn: parsed.data.retiredOn ?? null,
+    ...(parsed.data.department
+      ? { department: parsed.data.department }
+      : {}),
     contract: contractFromParsed(parsed.data.contract),
   };
 

@@ -260,6 +260,8 @@ export function employeeRowToDomain(row: EmployeeWithContractRow): Employee {
     email: row.email,
     hiredOn: dateToIsoDate(row.hiredOn),
     retiredOn: row.retiredOn === null ? null : dateToIsoDate(row.retiredOn),
+    // 事業部は未設定（DB で null）のときキーを省く（任意プロパティの規約に合わせる）。
+    ...(row.department !== null ? { department: row.department } : {}),
     contract: contractRowToDomain(row.contract),
   };
 }
@@ -274,6 +276,7 @@ export function employeeToRow(employee: Employee): EmployeeWithContractRow {
     hiredOn: isoDateToDate(employee.hiredOn),
     retiredOn:
       employee.retiredOn === null ? null : isoDateToDate(employee.retiredOn),
+    department: employee.department ?? null,
     contract: contractToRow(employee.contract, employee.id),
   };
 }

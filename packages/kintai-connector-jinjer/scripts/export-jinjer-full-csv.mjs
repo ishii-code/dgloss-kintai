@@ -12,6 +12,8 @@
  *     ライン以上を「はい」にする。判定は実行時に一覧表示するので目視確認でき、環境変数
  *     JINJER_MANAGER_MIN_RANK / JINJER_MANAGER_ROLES で補正して再実行できる
  *   - 勤務体系・所属 … API に明確な項目が無く既定（固定時間制／本社）。必要に応じ編集
+ *   - 事業部 … jinjer の部署名（affiliations の department）をそのまま出力。固定残業超過の
+ *     Google チャット通知を事業部で絞り込むのに用いる（本社の所属区分とは別物）
  *
  * 環境変数: JINJER_BASE_URL/API_KEY/SECRET_KEY(またはAPI_SECRET)/COMPANY_CODE
  * 実行: node packages/kintai-connector-jinjer/scripts/export-jinjer-full-csv.mjs
@@ -35,7 +37,7 @@ if (!API_KEY || !SECRET_KEY) {
 const HEADERS = [
   "社員番号", "氏名", "メール", "入社日", "退職日", "雇用区分", "勤務体系", "所属",
   "管理監督者", "基本給", "年間所定労働時間", "固定残業手当",
-  "充当_時間外", "充当_60時間超", "充当_休日", "充当_深夜",
+  "充当_時間外", "充当_60時間超", "充当_休日", "充当_深夜", "事業部",
 ];
 
 const esc = (v) => { const s = String(v ?? ""); return /[",\r\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
@@ -155,7 +157,7 @@ async function main() {
     const name = `${c.last_name || p.last_name || ""} ${c.first_name || p.first_name || ""}`.trim();
     const { base, fixedOt, cls } = pickSalary(salById.get(String(e.id)));
     if (base > 0) withBase += 1;
-    const { post } = pickAff(affById.get(String(e.id)));
+    const { dept, post } = pickAff(affById.get(String(e.id)));
     const manager = isManagerPost(post);
     if (manager) managerCount += 1;
     const stat = postStat.get(post) || { count: 0, manager };
@@ -171,13 +173,14 @@ async function main() {
       ymd(c.retirement_date),
       empType(c.employment_classification?.name),
       workSystem,
-      "本社",                                  // 所属（既定・要確認）
+      "本社",                                  // 所属（勤務ルール用・既定・要確認）
       manager ? "はい" : "いいえ",             // 管理監督者（jinjer役職から自動判定：MGR以上）
       String(base),                            // 基本給（jinjer実データ）
       "1900",                                  // 年間所定労働時間（既定）
       String(fixedOt),                         // 固定残業手当（jinjer実データ）
       hasFixedOt ? "はい" : "いいえ",           // 充当_時間外
       "いいえ", "いいえ", "いいえ",             // 充当_60超/休日/深夜
+      dept,                                    // 事業部（jinjer部署名・通知の絞り込み用）
     ];
     lines.push(row.map(esc).join(","));
   }

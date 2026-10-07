@@ -21,7 +21,7 @@ BEGIN
 
   CREATE TABLE "Employee" (
     "id" TEXT NOT NULL, "employeeCode" TEXT NOT NULL, "name" TEXT NOT NULL,
-    "email" TEXT, "hiredOn" DATE NOT NULL, "retiredOn" DATE,
+    "email" TEXT, "hiredOn" DATE NOT NULL, "retiredOn" DATE, "department" TEXT,
     CONSTRAINT "Employee_pkey" PRIMARY KEY ("id"));
 
   CREATE TABLE "EmploymentContract" (
@@ -107,6 +107,14 @@ BEGIN
     "scheduledHolidayWeekdays" INTEGER[] NOT NULL, "customHolidays" TEXT[] NOT NULL,
     "updatedAt" TIMESTAMP(3) NOT NULL,
     CONSTRAINT "WorkCalendar_pkey" PRIMARY KEY ("id"));
+
+  CREATE TABLE "OvertimeAlert" (
+    "id" TEXT NOT NULL, "employeeId" TEXT NOT NULL,
+    "periodYear" INTEGER NOT NULL, "periodMonth" INTEGER NOT NULL,
+    "additionalPayment" INTEGER NOT NULL, "notifiedAt" TIMESTAMP(3) NOT NULL,
+    CONSTRAINT "OvertimeAlert_pkey" PRIMARY KEY ("id"));
+  CREATE UNIQUE INDEX "OvertimeAlert_employeeId_periodYear_periodMonth_key" ON "OvertimeAlert"("employeeId","periodYear","periodMonth");
+  CREATE INDEX "OvertimeAlert_periodYear_periodMonth_idx" ON "OvertimeAlert"("periodYear","periodMonth");
 
   ALTER TABLE "EmploymentContract" ADD CONSTRAINT "EmploymentContract_employeeId_fkey" FOREIGN KEY ("employeeId") REFERENCES "Employee"("id") ON DELETE CASCADE ON UPDATE CASCADE;
   ALTER TABLE "Stamp" ADD CONSTRAINT "Stamp_employeeId_fkey" FOREIGN KEY ("employeeId") REFERENCES "Employee"("id") ON DELETE CASCADE ON UPDATE CASCADE;

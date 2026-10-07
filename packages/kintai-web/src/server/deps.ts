@@ -19,6 +19,7 @@ import {
   InMemoryEmployeeRepository,
   InMemoryImprovementRequestRepository,
   InMemoryMonthlyClosingRepository,
+  InMemoryOvertimeAlertStateRepository,
   InMemoryRoleSettingsRepository,
   InMemoryStampRepository,
   InMemoryWorkCalendarRepository,
@@ -32,6 +33,8 @@ import type {
   IdGenerator,
   ImprovementRequestRepository,
   MonthlyClosingRepository,
+  OvertimeAlertNotifier,
+  OvertimeAlertStateRepository,
   RoleSettingsRepository,
   StampRepository,
   WorkCalendarRepository,
@@ -54,6 +57,7 @@ import type {
 } from "@dgloss-kintai/contracts";
 
 import { DEMO_EMPLOYEE_ID } from "@/lib/demo";
+import { createOvertimeAlertNotifier } from "@/server/overtimeAlertNotifier";
 
 /**
  * サービス層ユースケースに供給する依存一式。
@@ -69,6 +73,10 @@ export interface ServerDeps {
   readonly companySettings: CompanySettingsRepository;
   readonly roleSettings: RoleSettingsRepository;
   readonly calendar: WorkCalendarRepository;
+  /** 固定残業超過アラートの通知済み状態（冪等キー）。 */
+  readonly alertState: OvertimeAlertStateRepository;
+  /** 固定残業超過アラートの通知器（Google チャット等）。 */
+  readonly notifier: OvertimeAlertNotifier;
   readonly ids: IdGenerator;
   readonly clock: Clock;
 }
@@ -319,6 +327,8 @@ function buildInMemoryDeps(): ServerDeps {
     companySettings: new InMemoryCompanySettingsRepository(),
     roleSettings: new InMemoryRoleSettingsRepository(),
     calendar: new InMemoryWorkCalendarRepository(),
+    alertState: new InMemoryOvertimeAlertStateRepository(),
+    notifier: createOvertimeAlertNotifier(),
     ids: new RandomUuidIdGenerator(),
     clock: new SystemClock(),
   };
@@ -341,6 +351,8 @@ async function buildPrismaDeps(): Promise<ServerDeps> {
     companySettings: new db.PrismaCompanySettingsRepository(prisma),
     roleSettings: new db.PrismaRoleSettingsRepository(prisma),
     calendar: new db.PrismaWorkCalendarRepository(prisma),
+    alertState: new db.PrismaOvertimeAlertStateRepository(prisma),
+    notifier: createOvertimeAlertNotifier(),
     ids: new RandomUuidIdGenerator(),
     clock: new SystemClock(),
   };
